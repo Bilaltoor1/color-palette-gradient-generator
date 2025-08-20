@@ -1,24 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-
-function Toast({ message, type = "info" }) {
-  if (!message) return null;
-  const bg = type === "error" ? "bg-red-600" : "bg-emerald-600";
-  return (
-    <div className={`fixed right-4 bottom-6 z-50 ${bg} text-white px-4 py-2 rounded-md shadow-sm`}>
-      {message}
-    </div>
-  );
-}
+import { Copy } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 export default function PalettePreview({ palette = [], exportRef }) {
-  const [toast, setToast] = useState({ msg: "", type: "info" });
-
-  const showToast = (msg, type = "info") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast({ msg: "", type: "info" }), 1800);
-  };
+  const [openMenu, setOpenMenu] = useState(null);
 
   const downloadAsPdf = useCallback(async () => {
     if (!palette || palette.length === 0) {
@@ -63,7 +50,7 @@ export default function PalettePreview({ palette = [], exportRef }) {
         const textY = y + rectHeight + 14;
         pdf.text(c.hex, textX, textY);
         pdf.text(`RGB(${r}, ${g}, ${b})`, textX, textY + 12);
-        pdf.text(`HSL(${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%)`, textX, textY + 24);
+        pdf.text(`HSL(${Math.round(c.hsl.h)}\u00b0, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%)`, textX, textY + 24);
 
         // Page break if needed
         const nextRowBottom = y + rectHeight + 40;
@@ -75,13 +62,24 @@ export default function PalettePreview({ palette = [], exportRef }) {
         }
       }
 
-      pdf.save("palette.pdf");
-      showToast("PDF exported", "info");
+  pdf.save("palette.pdf");
+  toast.success("PDF exported");
     } catch (e) {
       console.error(e);
-      showToast("Failed to export PDF", "error");
+  toast.error("Failed to export PDF");
     }
   }, [palette]);
+
+  const copyToClipboard = async (text, key) => {
+    try {
+      await navigator.clipboard.writeText(text);
+  toast.success("Copied to clipboard");
+      setOpenMenu(null);
+    } catch (e) {
+      console.error(e);
+  toast.error("Copy failed");
+    }
+  };
 
   return (
     <>
@@ -93,7 +91,61 @@ export default function PalettePreview({ palette = [], exportRef }) {
           Export PDF
         </button>
       </div>
-      <Toast message={toast.msg} type={toast.type} />
+
+      <div ref={exportRef} className="flex flex-col w-full gap-3 mt-4">
+        {palette.map((c, i) => (
+          <div key={i} className="rounded-lg overflow-visible border border-black/10 dark:border-white/15 flex flex-row group min-h-[80px]">
+            <div className="w-24 h-20 flex-shrink-0" style={{ backgroundColor: c.hex }} />
+            <div className="p-4 pt-2 pb-0 text-sm flex-1 relative overflow-visible">
+              <button
+                className="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-md border border-black/10 dark:border-white/15 bg-white/80 dark:bg-black/30 backdrop-blur hover:bg-white/95 dark:hover:bg-black/50 transition z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenMenu(openMenu === i ? null : i);
+                }}
+                title="Copy options"
+                aria-haspopup="true"
+                aria-expanded={openMenu === i}
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+
+              {openMenu === i && (
+                <div className="absolute right-0 top-10 z-50 w-56 bg-white/95 dark:bg-black/90 border border-black/10 dark:border-white/10 rounded-md shadow-xl p-2 text-sm backdrop-blur overflow-visible">
+                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(c.hex, `hex-${i}`)}>Copy HEX</button>
+                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(`${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b}`, `rgb-${i}`)}>Copy RGB</button>
+                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(`${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%`, `hsl-${i}`)}>Copy HSL</button>
+                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(`${c.hex}\nRGB(${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b})\nHSL(${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%)`, `card-${i}`)}>Copy All</button>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2 pr-10">
+                <div className="flex items-center gap-3">
+                  <span className="text-foreground/70 text-xs w-10 flex-shrink-0">HEX</span>
+                    <button className="font-mono text-xs flex items-center gap-2 hover:text-blue-600 flex-1" onClick={() => copyToClipboard(c.hex, `hex-${i}`)} title="Copy HEX">
+                      <span className="flex-1">{c.hex}</span>
+                    </button>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-foreground/70 text-xs w-10 flex-shrink-0">RGB</span>
+                  <button className="font-mono text-xs flex items-center gap-2 hover:text-blue-600 flex-1" onClick={() => copyToClipboard(`${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b}`, `rgb-${i}`)} title="Copy RGB">
+                    <span className="flex-1">{c.rgb.r}, {c.rgb.g}, {c.rgb.b}</span>
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <span className="text-foreground/70 text-xs w-10 flex-shrink-0">HSL</span>
+                  <button className="font-mono text-xs flex items-center gap-2 hover:text-blue-600 flex-1" onClick={() => copyToClipboard(`${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%`, `hsl-${i}`)} title="Copy HSL">
+                    <span className="flex-1">{Math.round(c.hsl.h)}°, {Math.round(c.hsl.s * 100)}%, {Math.round(c.hsl.l * 100)}%</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </>
   );
 }
