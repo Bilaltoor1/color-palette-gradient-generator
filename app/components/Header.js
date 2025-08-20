@@ -14,6 +14,7 @@ export default function Header() {
           <nav className="flex items-center gap-2">
             <Link href="/palette" className="px-3 py-1 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5">Palette</Link>
             <Link href="/gradient" className="px-3 py-1 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5">Gradient</Link>
+            <Link href="/text-gradient" className="px-3 py-1 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5">Text Gradient</Link>
           </nav>
         </div>
       </div>
