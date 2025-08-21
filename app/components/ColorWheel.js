@@ -55,9 +55,12 @@ export default function ColorWheel({ size = 260, hsv, onChange, className = "" }
 
     let angle = (Math.atan2(y, x) * 180) / Math.PI;
     angle = (angle + 360) % 360;
-    const sat = Math.min(1, Math.max(0, dist / radius));
-
-    onChange({ h: angle, s: sat, v: hsv.v });
+  const sat = Math.min(1, Math.max(0, dist / radius));
+  // Ensure numeric values are passed
+  const newH = Number.isFinite(angle) ? angle : 0;
+  const newS = Number.isFinite(sat) ? sat : 0;
+  const newV = (hsv && typeof hsv.v === 'number') ? hsv.v : 1;
+  onChange({ h: newH, s: newS, v: newV });
   };
 
   useEffect(() => {
