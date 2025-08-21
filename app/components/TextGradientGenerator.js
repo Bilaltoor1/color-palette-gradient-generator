@@ -61,7 +61,7 @@ const GRADIENT_PRESETS = [
   }
 ];
 
-export default function TextGradientGenerator({ onGradientChange, onCssChange }) {
+export default function TextGradientGenerator({ onGradientChange, onCssChange, onTailwindChange, onTailwindBgChange }) {
   const [gradientType, setGradientType] = useState("linear");
   const [angle, setAngle] = useState(90);
   const [stops, setStops] = useState(GRADIENT_PRESETS[0].stops);
@@ -98,6 +98,70 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange })
     return `color: ${baseColor};\nbackground-image: ${gradientLine};\n-webkit-background-clip: text;\nbackground-clip: text;\ncolor: transparent;`;
   }, [gradientCSS, stops]);
 
+  // Tailwind utility class string for text gradient
+  const tailwindClasses = useMemo(() => {
+    // Helper to format hex for Tailwind arbitrary color: use [#RRGGBB]
+    const fmt = (hex) => `[#${hex.replace(/^#/, "")}]`;
+
+    // Helper to append opacity to Tailwind arbitrary color: from-[#rrggbb]/50
+    const fmtWithOpacity = (hex, op) => {
+      const alphaPct = Math.round((op ?? 1) * 100);
+      return `${fmt(hex)}/${alphaPct}`;
+    };
+
+    // Build class string following requested format: bg-linear-to-r / bg-radial
+    const prefix = `bg-clip-text text-transparent [-webkit-background-clip:text]`;
+
+    if (gradientType === "radial") {
+      // radial: use arbitrary color tokens for stops; Tailwind radial utility varies, use bg-radial
+      const sorted = [...stops].sort((a, b) => a.position - b.position);
+      if (sorted.length === 1) {
+        return `${prefix} bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)}`;
+      } else if (sorted.length === 2) {
+        return `${prefix} bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} to-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)}`;
+      }
+      return `${prefix} bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} via-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)} to-${fmtWithOpacity(sorted[2].color, sorted[2].opacity)}`;
+    }
+
+    // Linear: map angle to direction token r, l, t, b, tr, br, tl, bl
+    const dirs = ["t","tr","r","br","b","bl","l","tl"]; // nearest 45° sectors
+    const idx = Math.round((angle % 360) / 45) % 8;
+    const dirToken = dirs[idx];
+
+    const s = [...stops].sort((a, b) => a.position - b.position);
+    if (s.length === 1) {
+      return `${prefix} bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)}`;
+    } else if (s.length === 2) {
+      return `${prefix} bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} to-${fmtWithOpacity(s[1].color, s[1].opacity)}`;
+    } else {
+      return `${prefix} bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} via-${fmtWithOpacity(s[1].color, s[1].opacity)} to-${fmtWithOpacity(s[2].color, s[2].opacity)}`;
+    }
+  }, [stops, gradientType, angle]);
+
+  // Tailwind utility classes for background gradient (bg-*). Similar format but without text prefix.
+  const bgTailwindClasses = useMemo(() => {
+    const fmt = (hex) => `[#${hex.replace(/^#/, "")}]`;
+    const fmtWithOpacity = (hex, op) => {
+      const alphaPct = Math.round((op ?? 1) * 100);
+      return `${fmt(hex)}/${alphaPct}`;
+    };
+
+    if (gradientType === "radial") {
+      const sorted = [...stops].sort((a, b) => a.position - b.position);
+      if (sorted.length === 1) return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)}`;
+      if (sorted.length === 2) return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} to-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)}`;
+      return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} via-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)} to-${fmtWithOpacity(sorted[2].color, sorted[2].opacity)}`;
+    }
+
+    const dirs = ["t","tr","r","br","b","bl","l","tl"];
+    const idx = Math.round((angle % 360) / 45) % 8;
+    const dirToken = dirs[idx];
+    const s = [...stops].sort((a, b) => a.position - b.position);
+    if (s.length === 1) return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)}`;
+    if (s.length === 2) return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} to-${fmtWithOpacity(s[1].color, s[1].opacity)}`;
+    return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} via-${fmtWithOpacity(s[1].color, s[1].opacity)} to-${fmtWithOpacity(s[2].color, s[2].opacity)}`;
+  }, [stops, gradientType, angle]);
+
   // Notify parent component of gradient changes
   useEffect(() => {
     if (onGradientChange) {
@@ -111,6 +175,16 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange })
       onCssChange(textGradientCSS);
     }
   }, [textGradientCSS, onCssChange]);
+
+  // Notify parent of Tailwind classes (text utilities)
+  useEffect(() => {
+    if (onTailwindChange) onTailwindChange(tailwindClasses);
+  }, [tailwindClasses, onTailwindChange]);
+
+  // Notify parent of background Tailwind classes (bg utilities)
+  useEffect(() => {
+    if (onTailwindBgChange) onTailwindBgChange(bgTailwindClasses);
+  }, [bgTailwindClasses, onTailwindBgChange]);
 
   const copyCSS = async () => {
     try {
@@ -178,11 +252,12 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange })
         <h3 className="text-lg font-semibold">Live Preview</h3>
         <div className="text-center">
           <h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight"
+            className={`text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight ${tailwindClasses}`}
             style={{
               backgroundImage: gradientCSS,
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
               color: "transparent",
             }}
           >

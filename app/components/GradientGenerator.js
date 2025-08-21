@@ -61,7 +61,7 @@ const GRADIENT_PRESETS = [
   }
 ];
 
-export default function GradientGenerator({ onGradientChange }) {
+export default function GradientGenerator({ onGradientChange, onTailwindBgChange }) {
   const [gradientType, setGradientType] = useState("linear");
   const [angle, setAngle] = useState(90);
   const [stops, setStops] = useState(GRADIENT_PRESETS[0].stops);
@@ -97,6 +97,34 @@ export default function GradientGenerator({ onGradientChange }) {
     const gradientLine = gradientCSS;
     return `background: ${baseColor};\nbackground: ${gradientLine};`;
   }, [gradientCSS, stops]);
+
+  // Tailwind utility classes for background gradient (bg-*). Similar format as TextGradientGenerator.
+  const bgTailwindClasses = useMemo(() => {
+    const fmt = (hex) => `[#${hex.replace(/^#/, "")}]`;
+    const fmtWithOpacity = (hex, op) => {
+      const alphaPct = Math.round((op ?? 1) * 100);
+      return `${fmt(hex)}/${alphaPct}`;
+    };
+
+    if (gradientType === "radial") {
+      const sorted = [...stops].sort((a, b) => a.position - b.position);
+      if (sorted.length === 1) return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)}`;
+      if (sorted.length === 2) return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} to-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)}`;
+      return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} via-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)} to-${fmtWithOpacity(sorted[2].color, sorted[2].opacity)}`;
+    }
+
+    const dirs = ["t","tr","r","br","b","bl","l","tl"];
+    const idx = Math.round((angle % 360) / 45) % 8;
+    const dirToken = dirs[idx];
+    const s = [...stops].sort((a, b) => a.position - b.position);
+    if (s.length === 1) return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)}`;
+    if (s.length === 2) return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} to-${fmtWithOpacity(s[1].color, s[1].opacity)}`;
+    return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} via-${fmtWithOpacity(s[1].color, s[1].opacity)} to-${fmtWithOpacity(s[2].color, s[2].opacity)}`;
+  }, [stops, gradientType, angle]);
+
+  useEffect(() => {
+    if (onTailwindBgChange) onTailwindBgChange(bgTailwindClasses);
+  }, [bgTailwindClasses, onTailwindBgChange]);
 
   // Notify parent component of gradient changes
   useEffect(() => {
@@ -366,7 +394,7 @@ export default function GradientGenerator({ onGradientChange }) {
           </button>
         </div>
       </div>
-
+      
    
 
   {/* Toasts handled by react-hot-toast Toaster in layout */}

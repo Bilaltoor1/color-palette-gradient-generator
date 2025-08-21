@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ColorWheel from "../components/ColorWheel";
 import PalettePreview from "../components/PalettePreview";
-import { generatePalette, hsvToHex, hsvToRgb, hsvToHsl } from "../components/PaletteUtils";
+import { generatePalette, hsvToHex, hsvToRgb, hsvToHsl, rgbToHsv } from "../components/PaletteUtils";
 import { ArrowLeft } from "lucide-react";
 
 const SCHEMES = [
@@ -18,7 +18,7 @@ const SCHEMES = [
 export default function PalettePage() {
 	const router = useRouter();
 	const [scheme, setScheme] = useState("complementary");
-	const [hsv, setHsv] = useState({ h: 210, s: 0.9, v: 0.9 });
+		const [hsv, setHsv] = useState({ h: 210, s: 0.9, v: 0.9, a: 1 });
 	const [paletteSize, setPaletteSize] = useState(5);
 	const exportRef = useRef(null);
 
@@ -49,6 +49,41 @@ export default function PalettePage() {
 	};
 
 	const heroHex = useMemo(() => hsvToHex(hsv), [hsv]);
+
+	// preview rgb and alpha for checkerboard swatch
+	const previewRgb = useMemo(() => hsvToRgb(hsv), [hsv]);
+	const previewAlpha = typeof hsv.a === 'number' ? hsv.a : 1;
+
+	// Lightness control (HSL lightness 0..100)
+	const [light, setLight] = useState(() => Math.round(hsvToHsl(hsv).l * 100));
+
+	useEffect(() => {
+		setLight(Math.round(hsvToHsl(hsv).l * 100));
+	}, [hsv]);
+
+	function hslToRgb(h, s, l) {
+		// h in degrees [0,360), s,l in [0,1]
+		h = ((h % 360) + 360) % 360;
+		if (s === 0) {
+			const v = Math.round(l * 255);
+			return { r: v, g: v, b: v };
+		}
+		const c = (1 - Math.abs(2 * l - 1)) * s;
+		const hp = h / 60;
+		const x = c * (1 - Math.abs((hp % 2) - 1));
+		let r1 = 0, g1 = 0, b1 = 0;
+		if (hp >= 0 && hp < 1) [r1, g1, b1] = [c, x, 0];
+		else if (hp >= 1 && hp < 2) [r1, g1, b1] = [x, c, 0];
+		else if (hp >= 2 && hp < 3) [r1, g1, b1] = [0, c, x];
+		else if (hp >= 3 && hp < 4) [r1, g1, b1] = [0, x, c];
+		else if (hp >= 4 && hp < 5) [r1, g1, b1] = [x, 0, c];
+		else [r1, g1, b1] = [c, 0, x];
+		const m = l - c / 2;
+		const r = Math.round((r1 + m) * 255);
+		const g = Math.round((g1 + m) * 255);
+		const b = Math.round((b1 + m) * 255);
+		return { r, g, b };
+	}
 
 	return (
 		<div className="min-h-screen flex flex-col">
@@ -93,7 +128,7 @@ export default function PalettePage() {
 						</div>
 
 						<div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-6 items-start">
-							<ColorWheel
+							  <ColorWheel
 								size={260}
 								hsv={hsv}
 								onChange={(newHsv) => {
@@ -109,11 +144,21 @@ export default function PalettePage() {
 							<div className="flex flex-col gap-4">
 								<div>
 									<p className="text-xs uppercase tracking-wide text-foreground/70 mb-1">Base color</p>
-									<div className="flex items-center gap-3">
-										<div
-											className="w-10 h-10 rounded-md border border-black/10 dark:border-white/15"
-											style={{ backgroundColor: heroHex }}
-										/>
+														<div className="flex items-center gap-3">
+															<div
+																className="w-10 h-10 rounded-md border border-black/10 dark:border-white/15 overflow-hidden relative"
+																style={{
+																	backgroundImage:
+																		"linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)",
+																	backgroundSize: "10px 10px",
+																	backgroundPosition: "0 0, 0 5px, 5px -5px, -5px 0px",
+																}}
+															>
+																																<div
+																																	className="absolute inset-0 rounded-md"
+																																	style={{ backgroundColor: `rgba(${previewRgb.r}, ${previewRgb.g}, ${previewRgb.b}, ${previewAlpha})` }}
+																																/>
+															</div>
 										<div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
 											<span className="text-foreground/70">HEX</span>
 											<span className="font-mono">{heroHex}</span>
@@ -135,6 +180,32 @@ export default function PalettePage() {
 									</div>
 								</div>
 
+													{/* Lightness (brightness) control */}
+													<div>
+														<label className="text-xs uppercase tracking-wide text-foreground/70 mb-1 block">Lightness</label>
+														<div className="flex items-center gap-3">
+															<input
+																type="range"
+																min={0}
+																max={100}
+																value={light}
+																onChange={(e) => {
+																	const val = Math.max(0, Math.min(100, parseInt(e.target.value)));
+																	setLight(val);
+																	// convert current hue/saturation with new lightness to RGB then to HSV to update ColorWheel
+																	const h = hsv.h;
+																	const s = hsvToHsl(hsv).s; // keep same HSL saturation
+																	const l = val / 100;
+																	const { r, g, b } = hslToRgb(h, s, l);
+																	const newHsv = rgbToHsv({ r, g, b });
+																	setHsv((prev) => ({ ...prev, h: newHsv.h, s: newHsv.s, v: newHsv.v }));
+																}}
+																className="w-full"
+															/>
+															<span className="text-sm tabular-nums w-10 text-right">{light}%</span>
+														</div>
+													</div>
+
 								<label className="text-xs uppercase tracking-wide text-foreground/70 mb-1">Palette size</label>
 								<div className="flex items-center gap-3">
 									<input
@@ -151,7 +222,7 @@ export default function PalettePage() {
 								<div className="flex gap-2">
 									<button
 										className="px-4 py-2 rounded-md border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10 text-sm"
-										onClick={() => setHsv((prev) => ({ ...prev, s: 0.9, v: 0.9 }))}
+															onClick={() => setHsv((prev) => ({ ...prev, s: 0.9, v: 0.9, a: 1 }))}
 										title="Reset value"
 									>
 										Reset
