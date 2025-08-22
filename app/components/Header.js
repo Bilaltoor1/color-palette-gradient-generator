@@ -4,16 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { MdLightMode, MdDarkMode } from "react-icons/md";
+import { useTheme } from "./ThemeProvider";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const linkClass = (path) =>
-    `px-3 py-1 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${pathname === path ? 'bg-black/5 dark:bg-white/5' : ''}`;
+    `px-3 py-1 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors ${pathname === path ? 'bg-accent text-accent-foreground' : ''}`;
 
   const mobileLinkClass = (path) =>
-    `block px-4 py-3 text-base font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${pathname === path ? 'bg-black/5 dark:bg-white/5' : ''}`;
+    `block px-4 py-3 text-base font-medium hover:bg-accent hover:text-accent-foreground transition-colors ${pathname === path ? 'bg-accent text-accent-foreground' : ''}`;
 
   const navLinks = [
     { href: "/palette", label: "Palette" },
@@ -26,11 +30,11 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-white/80 dark:bg-black/80 backdrop-blur border-b border-black/10 dark:border-white/10 sticky top-0 z-40">
+      <header className="bg-background/80 backdrop-blur border-b border-border sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-lg font-semibold">Color Studio</Link>
+              <Link href="/" className="text-lg font-semibold text-foreground">Color Studio</Link>
             </div>
 
             {/* Desktop Navigation */}
@@ -45,16 +49,49 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
+              
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="ml-2 p-2 hover:bg-accent hover:text-accent-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <MdLightMode className="h-5 w-5 text-yellow-500" />
+                ) : (
+                  <MdDarkMode className="h-5 w-5 text-muted-foreground" />
+                )}
+              </Button>
             </nav>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={20} />
-            </button>
+            {/* Mobile Menu Button and Theme Toggle */}
+            <div className="md:hidden flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="p-2 hover:bg-accent hover:text-accent-foreground"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <MdLightMode className="h-5 w-5 text-yellow-500" />
+                ) : (
+                  <MdDarkMode className="h-5 w-5 text-muted-foreground" />
+                )}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open menu"
+                className="p-2 hover:bg-accent hover:text-accent-foreground"
+              >
+                <Menu size={20} />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -69,23 +106,25 @@ export default function Header() {
           />
           
           {/* Drawer */}
-          <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white/95 dark:bg-black/95 backdrop-blur border-r border-black/10 dark:border-white/10 shadow-xl">
+          <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-card/95 backdrop-blur border-r border-border shadow-xl">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <Link 
                 href="/" 
-                className="text-lg font-semibold"
+                className="text-lg font-semibold text-card-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Color Studio
               </Link>
-              <button
-                className="p-2 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close menu"
+                className="p-2 hover:bg-accent hover:text-accent-foreground"
               >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
 
             {/* Navigation */}

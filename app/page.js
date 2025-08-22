@@ -26,7 +26,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 md:py-32 text-center">
@@ -47,20 +47,20 @@ export default function Home() {
             return (
               <div
                 key={tool.id}
-                className="group relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 transition-all duration-300 hover:shadow-xl"
+                className="group relative overflow-hidden rounded-2xl border border-border hover:border-border/80 transition-all duration-300 hover:shadow-xl"
               >
                 {/* Background Gradient */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-10 group-hover:opacity-20 transition-opacity`} />
                 
                 {/* Content */}
-                <div className="relative p-8 bg-white/60 dark:bg-black/60 backdrop-blur">
+                <div className="relative p-8 bg-card/80 backdrop-blur">
                   <div className="flex items-start gap-4 mb-4">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${tool.gradient} text-white`}>
                       <Icon className="w-8 h-8" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl font-semibold mb-2">{tool.label}</h2>
-                      <p className="text-foreground/70 mb-6">{tool.description}</p>
+                      <h2 className="text-2xl font-semibold mb-2 text-card-foreground">{tool.label}</h2>
+                      <p className="text-muted-foreground mb-6">{tool.description}</p>
                     </div>
                   </div>
                   
@@ -79,23 +79,23 @@ export default function Home() {
         
         {/* Features */}
         <div className="mt-16 text-center">
-          <h2 className="text-3xl font-bold mb-8">Features</h2>
+          <h2 className="text-3xl font-bold mb-8 text-foreground">Features</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10">
-              <h3 className="font-semibold mb-2">Multiple Color Schemes</h3>
-              <p className="text-sm text-foreground/70">Complementary, triadic, analogous, and more</p>
+            <div className="p-6 rounded-xl bg-card/80 backdrop-blur border border-border">
+              <h3 className="font-semibold mb-2 text-card-foreground">Multiple Color Schemes</h3>
+              <p className="text-sm text-muted-foreground">Complementary, triadic, analogous, and more</p>
             </div>
-            <div className="p-6 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10">
-              <h3 className="font-semibold mb-2">Export Options</h3>
-              <p className="text-sm text-foreground/70">PDF export and CSS code generation</p>
+            <div className="p-6 rounded-xl bg-card/80 backdrop-blur border border-border">
+              <h3 className="font-semibold mb-2 text-card-foreground">Export Options</h3>
+              <p className="text-sm text-muted-foreground">PDF export and CSS code generation</p>
             </div>
-            <div className="p-6 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10">
-              <h3 className="font-semibold mb-2">Interactive Tools</h3>
-              <p className="text-sm text-foreground/70">Drag and drop color selectors</p>
+            <div className="p-6 rounded-xl bg-card/80 backdrop-blur border border-border">
+              <h3 className="font-semibold mb-2 text-card-foreground">Interactive Tools</h3>
+              <p className="text-sm text-muted-foreground">Drag and drop color selectors</p>
             </div>
-            <div className="p-6 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10">
-              <h3 className="font-semibold mb-2">Responsive Design</h3>
-              <p className="text-sm text-foreground/70">Works perfectly on all devices</p>
+            <div className="p-6 rounded-xl bg-card/80 backdrop-blur border border-border">
+              <h3 className="font-semibold mb-2 text-card-foreground">Responsive Design</h3>
+              <p className="text-sm text-muted-foreground">Works perfectly on all devices</p>
             </div>
           </div>
         </div>

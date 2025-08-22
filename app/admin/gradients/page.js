@@ -61,7 +61,7 @@ function StopEditor({ stops, setStops }) {
     <div className="space-y-3">
       <div className="font-medium text-sm">Color Stops</div>
       {stops.map((s, i) => (
-        <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div key={i} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
           <input 
             type="color" 
             value={s.color} 
@@ -224,11 +224,11 @@ export default function AdminGradientsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Gradient Management</h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-foreground">Gradient Management</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Create, edit, and manage your gradient collection. Import multiple gradients at once with bulk upload.
           </p>
         </div>
@@ -253,17 +253,17 @@ export default function AdminGradientsPage() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map(g => (
-            <div key={g._id} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-300">
+            <div key={g._id} className="group bg-card/80 backdrop-blur rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all duration-300">
               <div className="h-40 w-full" style={{ background: buildPreview(g) }} />
               <div className="p-4 space-y-3">
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
                     {g.title}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
+                  <p className="text-sm text-muted-foreground font-mono">
                     /{g.slug}
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {timeAgo(g.createdAt)}
                   </p>
                 </div>
@@ -273,16 +273,16 @@ export default function AdminGradientsPage() {
                     size="sm" 
                     variant="outline" 
                     onClick={() => window.open(`/admin/gradients/${g._id}`, '_blank')}
-                    className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400"
+                    className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 border-blue-200"
                   >
                     <Edit className="w-4 h-4 mr-1" />
                     Edit
                   </Button>
                   <Button 
                     size="sm" 
-                    variant="destructive" 
+                    variant="outline" 
                     onClick={() => setDeleteAlert({ open: true, gradient: g })}
-                    className="cursor-pointer"
+                    className="cursor-pointer bg-accent text-accent-foreground border-border hover:bg-primary hover:text-primary-foreground"
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
                     Delete
@@ -305,7 +305,7 @@ export default function AdminGradientsPage() {
 
         {/* Create Dialog */}
         <div className={`${open ? '' : 'hidden'} fixed inset-0 z-50 grid place-items-center bg-black/40 p-4`}>
-          <div className="w-full max-w-2xl rounded-xl bg-white dark:bg-gray-800 p-6 shadow-2xl max-h-screen overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-xl bg-card p-6 shadow-2xl max-h-screen overflow-y-auto">
             <div className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Create New Gradient</div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -354,7 +354,7 @@ export default function AdminGradientsPage() {
                 placeholder="Tags (comma separated)" 
                 onChange={e => setForm(f => ({ ...f, tags: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }))} 
               />
-              <div className="h-32 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600" style={{ background: buildPreview(form) }} />
+              <div className="h-32 rounded-lg border-2 border-dashed border-border" style={{ background: buildPreview(form) }} />
               <div className="flex justify-end gap-3 pt-4">
                 <Button 
                   variant="outline" 
@@ -384,7 +384,7 @@ export default function AdminGradientsPage() {
 
         {/* Bulk Import Dialog */}
         <div className={`${bulkOpen ? '' : 'hidden'} fixed inset-0 z-50 grid place-items-center bg-black/40 p-4`}>
-          <div className="w-full max-w-4xl rounded-xl bg-white dark:bg-gray-800 p-6 shadow-2xl max-h-screen flex flex-col">
+          <div className="w-full max-w-4xl rounded-xl bg-card p-6 shadow-2xl max-h-screen flex flex-col">
             <div className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Bulk Import Gradients</div>
             <div className="flex-1 min-h-0 overflow-y-auto">
               <Textarea 
@@ -394,7 +394,7 @@ export default function AdminGradientsPage() {
                 className="w-full font-mono text-sm" 
                 placeholder="Paste your JSON array here..."
               />
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="text-sm text-muted-foreground mt-3 p-3 bg-muted rounded-lg">
                 <strong>Expected format:</strong> Array of gradient objects<br />
                 <code className="text-xs">
                   {`[{ "title":"Sunset", "slug":"sunset", "type":"linear", "angle":90, "stops":[{"color":"#FF0000","position":0},{"color":"#0000FF","position":100}], "tags":["warm"] }]`}
@@ -432,18 +432,18 @@ export default function AdminGradientsPage() {
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteAlert.open} onOpenChange={(open) => setDeleteAlert({ open, gradient: null })}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-card text-card-foreground border-border">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Gradient</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-primary">Delete Gradient</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
                 Are you sure you want to delete "{deleteAlert.gradient?.title}"? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="bg-muted text-muted-foreground border-border hover:bg-accent hover:text-accent-foreground">Cancel</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={() => deleteAlert.gradient && del(deleteAlert.gradient)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-primary text-primary-foreground hover:bg-primary/80"
               >
                 Delete
               </AlertDialogAction>

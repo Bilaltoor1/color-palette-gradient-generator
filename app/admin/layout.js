@@ -12,8 +12,8 @@ export default function AdminLayout({ children }) {
   const linkClass = (path) =>
     `flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors ${
       pathname === path 
-        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
-        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+        ? 'bg-primary/10 text-primary' 
+        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
     }`;
 
   const navLinks = [
@@ -23,7 +23,7 @@ export default function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -33,14 +33,14 @@ export default function AdminLayout({ children }) {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform lg:translate-x-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Admin Panel</h1>
+        <div className="flex h-16 items-center justify-between px-6 border-b border-border">
+          <h1 className="text-xl font-semibold text-card-foreground">Admin Panel</h1>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="lg:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <X size={20} />
           </button>
@@ -56,8 +56,8 @@ export default function AdminLayout({ children }) {
               </Link>
             );
           })}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
-            <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+          <div className="border-t border-border pt-4 mt-6">
+            <Link href="/" className="flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors">
               <Home size={18} />
               Back to Site
             </Link>
@@ -68,23 +68,23 @@ export default function AdminLayout({ children }) {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top header */}
-        <div className="sticky top-0 z-30 flex h-16 items-center justify-between bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6">
+        <div className="sticky top-0 z-30 flex h-16 items-center justify-between bg-card border-b border-border px-6">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="lg:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <Menu size={20} />
           </button>
           
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm text-muted-foreground">
               {pathname.split('/').pop() || 'Dashboard'}
             </span>
           </div>
         </div>
 
         {/* Page content */}
-        <main>
+        <main className="bg-background min-h-screen">
           {children}
         </main>
       </div>

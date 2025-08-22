@@ -5,6 +5,8 @@ import { toast } from "react-hot-toast";
 import { X, Plus } from "lucide-react";
 import ColorWheel from "./ColorWheel";
 import { hsvToHex, hsvToRgb, hexToHsv } from "./PaletteUtils";
+import { Button } from "@/components/ui/button";
+import { RiCss3Fill } from "react-icons/ri";
 
 const GRADIENT_PRESETS = [
   {
@@ -198,7 +200,7 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
     <div className="space-y-6">
       {/* Controls */}
          {/* Presets */}
-      <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
+      <div className="bg-card/80 backdrop-blur  rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
         <h3 className="text-lg font-semibold mb-4">Presets</h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
           {GRADIENT_PRESETS.map((preset) => {
@@ -224,7 +226,7 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gradient Settings */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10 space-y-4">
+        <div className="bg-card/80 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10 space-y-4">
           <h3 className="text-lg font-semibold">Gradient Settings</h3>
           
           {/* Type Selection */}
@@ -324,7 +326,7 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
 
           {/* Active Stop Controls */}
           {activeStop && (
-            <div className="space-y-3 p-3 bg-black/5 dark:bg-white/5 rounded">
+            <div className="space-y-3 p-3 bg-card/80 backdrop-blur rounded">
               <h4 className="text-sm font-medium">Edit Selected Stop</h4>
               
               <div>
@@ -363,7 +365,7 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
         </div>
 
         {/* Color Picker */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
+        <div className="bg-card/80 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
           <h3 className="text-lg font-semibold mb-4">Color Picker</h3>
           {showColorPicker && (
             <div className="flex justify-center">
@@ -382,16 +384,17 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
         className="w-full min-h-32 rounded-xl border border-black/10 dark:border-white/15 p-4 flex flex-col justify-end"
         style={{ background: gradientCSS }}
       >
-        <div className="bg-white/90 dark:bg-black/80 backdrop-blur rounded-lg p-3 space-y-2">
+        <div className="bg-card/80 backdrop-blur rounded-lg p-3 space-y-2">
           <pre className="text-xs font-mono text-foreground/80 whitespace-pre-wrap break-all">
             {cssCode}
           </pre>
-          <button
+          <Button
             onClick={copyCSS}
-            className="px-3 py-1.5 text-xs rounded border border-black/10 dark:border-white/15 bg-white/70 dark:bg-black/30 hover:bg-white/90 dark:hover:bg-black/50 transition"
+            className="px-3 py-1.5 text-xs rounded bg-card/80 backdrop-blur text-card-foreground transition"
           >
+            <RiCss3Fill className="w-3 h-3" aria-hidden />
             Copy CSS
-          </button>
+          </Button>
         </div>
       </div>
       

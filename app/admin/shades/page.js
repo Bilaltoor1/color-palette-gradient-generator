@@ -197,17 +197,17 @@ export default function AdminShadesPage() {
       {/* Existing Collections */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {collections.length === 0 ? (
-          <div className="p-6 rounded border bg-white/60 dark:bg-white/5">No collections yet. Create a new collection above.</div>
+          <div className="p-6 rounded border bg-card/80 backdrop-blur border-border text-card-foreground">No collections yet. Create a new collection above.</div>
         ) : (
           collections.map((collection) => (
-            <div key={collection._id} className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl border border-black/5 dark:border-white/10 hover:shadow-md transition-shadow cursor-pointer relative group overflow-hidden">
+            <div key={collection._id} className="bg-card/80 backdrop-blur rounded-xl border border-border hover:shadow-md transition-shadow cursor-pointer relative group overflow-hidden">
               <div onClick={() => window.location.href = `/admin/shades/${collection.slug}`}> 
                 <div className="flex flex-col">
                   {(collection.colors || []).slice(0, 7).map((color, i) => (
                     <div key={i} className="w-full h-10" style={{ backgroundColor: color.hex }} title={`${color.name}: ${color.hex}`} />
                   ))}
                   {Array.from({ length: Math.max(0, 7 - (collection.colors?.length || 0)) }).map((_, i) => (
-                    <div key={`empty-${i}`} className="w-full h-10 bg-gray-100 dark:bg-gray-800" />
+                    <div key={`empty-${i}`} className="w-full h-10 bg-muted" />
                   ))}
                 </div>
                 <div className="p-4">
@@ -221,12 +221,12 @@ export default function AdminShadesPage() {
 
       {/* Create New Collection Form */}
       {isCreating && (
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-6 border border-black/5 dark:border-white/10">
+        <div className="bg-card/80 backdrop-blur rounded-xl p-6 border border-border">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Create New Collection</h2>
             <button
               onClick={() => setIsCreating(false)}
-              className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5"
+              className="p-1 rounded hover:bg-accent hover:text-accent-foreground"
             >
               <X size={20} />
             </button>
@@ -277,7 +277,7 @@ export default function AdminShadesPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={addColor}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm border border-border hover:bg-accent hover:text-accent-foreground"
                   >
                     <Plus size={14} />
                     Add Color
@@ -310,7 +310,7 @@ export default function AdminShadesPage() {
                     <textarea
                       value={bulkColors}
                       onChange={(e) => setBulkColors(e.target.value)}
-                      className="w-full h-32 border rounded px-3 py-2 bg-white dark:bg-gray-800 font-mono text-sm"
+                      className="w-full h-32 border rounded px-3 py-2 bg-card border-border font-mono text-sm text-card-foreground"
                       placeholder='[
   { "name": "Pure Red", "hex": "#FF0000" },
   { "name": "Crimson", "hex": "#DC143C" },
@@ -344,7 +344,7 @@ export default function AdminShadesPage() {
   { "name": "Burgundy", "hex": "#800020" },
   { "name": "Maroon", "hex": "#800000" }
 ]`)}
-                      className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                      className="px-3 py-2 border border-border rounded hover:bg-accent hover:text-accent-foreground"
                     >
                       Load Red Example
                     </button>

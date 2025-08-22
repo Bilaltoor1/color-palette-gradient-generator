@@ -111,7 +111,7 @@ export default function AddColorPage({ params }) {
   if (!collection) return <div className="p-6">Collection not found</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <style jsx>{`
         input[type="range"] {
           -webkit-appearance: none;
@@ -155,12 +155,12 @@ export default function AddColorPage({ params }) {
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
       `}</style>
-      <div className="max-w-6xl mx-auto p-6">
+  <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => router.push(`/admin/shades/${slug}`)}
-            className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
@@ -172,7 +172,7 @@ export default function AddColorPage({ params }) {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Color Picker */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <div className="bg-card rounded-2xl p-6 shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Color Picker</h2>
             <div className="flex flex-col items-center space-y-6">
               <ColorWheel
@@ -183,7 +183,7 @@ export default function AddColorPage({ params }) {
               
               {/* Brightness Slider */}
               <div className="w-full max-w-sm">
-                <label className="block text-sm font-medium mb-2">Brightness</label>
+                <label className="block text-sm font-medium mb-2 text-muted-foreground">Brightness</label>
                 <div className="relative">
                   <input
                     type="range"
@@ -200,7 +200,7 @@ export default function AddColorPage({ params }) {
                       background: `linear-gradient(to right, #000000, ${hsvToHex({h: hsv.h, s: hsv.s, v: 1})}, #ffffff)`
                     }}
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>Black</span>
                     <span>Pure Color</span>
                     <span>White</span>
@@ -210,7 +210,7 @@ export default function AddColorPage({ params }) {
 
               {/* Saturation Slider */}
               <div className="w-full max-w-sm">
-                <label className="block text-sm font-medium mb-2">Saturation</label>
+                <label className="block text-sm font-medium mb-2 text-muted-foreground">Saturation</label>
                 <div className="relative">
                   <input
                     type="range"
@@ -227,7 +227,7 @@ export default function AddColorPage({ params }) {
                       background: `linear-gradient(to right, ${hsvToHex({h: hsv.h, s: 0, v: hsv.v})}, ${hsvToHex({h: hsv.h, s: 1, v: hsv.v})})`
                     }}
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
                     <span>Gray</span>
                     <span>Vivid</span>
                   </div>
@@ -237,15 +237,15 @@ export default function AddColorPage({ params }) {
               {/* Color Preview */}
               <div className="w-full max-w-sm">
                 <div 
-                  className="w-full h-24 rounded-xl border-4 border-white shadow-lg"
+                  className="w-full h-24 rounded-xl border-4 border-card shadow-lg"
                   style={{ backgroundColor: currentColor.hex }}
                 />
                 <div className="mt-4 text-center">
-                  <div className="text-2xl font-mono font-bold">{currentColor.hex}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <div className="text-2xl font-mono font-bold text-card-foreground">{currentColor.hex}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
                     RGB({currentColor.rgb.r}, {currentColor.rgb.g}, {currentColor.rgb.b})
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-muted-foreground">
                     HSL({Math.round(currentColor.hsl.h)}°, {Math.round(currentColor.hsl.s * 100)}%, {Math.round(currentColor.hsl.l * 100)}%)
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function AddColorPage({ params }) {
 
           {/* Color Details */}
           <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+            <div className="bg-card rounded-2xl p-6 shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Color Details</h2>
               
               <div className="space-y-4">
@@ -266,12 +266,12 @@ export default function AddColorPage({ params }) {
                       type="text"
                       value={colorName}
                       onChange={(e) => setColorName(e.target.value)}
-                      className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-transparent"
+                      className="flex-1 border border-border rounded-lg px-3 py-2 bg-card/70 text-card-foreground"
                       placeholder="e.g., Ocean Blue, Sunset Orange"
                     />
                     <button
                       onClick={generateColorName}
-                      className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      className="px-3 py-2 text-sm border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
                     >
                       Auto
                     </button>
@@ -297,7 +297,7 @@ export default function AddColorPage({ params }) {
                           const newHsv = rgbToHsv({ r, g, b });
                           setHsv({ h: Number.isFinite(newHsv.h) ? newHsv.h : 0, s: Number.isFinite(newHsv.s) ? newHsv.s : 0, v: Number.isFinite(newHsv.v) ? newHsv.v : 0, a: 1 });
                         }}
-                        className="w-8 h-8 rounded-lg border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                        className="w-8 h-8 rounded-lg border-2 border-border hover:border-accent transition-colors"
                         style={{ backgroundColor: color }}
                         title={color}
                       />
@@ -340,11 +340,11 @@ export default function AddColorPage({ params }) {
                         }
                       }
                     }}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-transparent font-mono text-lg"
+                    className="w-full border border-border rounded-lg px-3 py-2 bg-card/70 text-card-foreground font-mono text-lg"
                     placeholder="#000000"
                     maxLength={7}
                   />
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-muted-foreground mt-1">
                     Enter a 6-digit hex color code (e.g., #FF5733)
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function AddColorPage({ params }) {
                   <button
                     onClick={saveColor}
                     disabled={isSaving || !colorName.trim()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-primary hover:bg-primary/80 disabled:bg-muted text-primary-foreground font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>Saving...</>
@@ -369,20 +369,20 @@ export default function AddColorPage({ params }) {
             </div>
 
             {/* Current Collection Preview */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+            <div className="bg-card rounded-2xl p-6 shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Current Collection</h2>
               <div className="grid grid-cols-4 gap-2">
                 {collection.colors?.map((color, i) => (
-                  <div key={i} className="aspect-square rounded-lg" style={{ backgroundColor: color.hex }} title={color.name} />
+                  <div key={i} className="aspect-square rounded-lg border border-border" style={{ backgroundColor: color.hex }} title={color.name} />
                 ))}
                 <div 
-                  className="aspect-square rounded-lg border-2 border-dashed border-blue-400 flex items-center justify-center"
+                  className="aspect-square rounded-lg border-2 border-dashed border-primary flex items-center justify-center"
                   style={{ backgroundColor: currentColor.hex + '40' }}
                 >
                   <Plus size={16} className="text-blue-600" />
                 </div>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <div className="text-sm text-muted-foreground mt-2">
                 {collection.colors?.length || 0} colors + 1 new
               </div>
             </div>

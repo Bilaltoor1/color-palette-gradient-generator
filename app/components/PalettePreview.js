@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { Copy } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 export default function PalettePreview({ palette = [], exportRef }) {
   const [openMenu, setOpenMenu] = useState(null);
@@ -97,27 +98,36 @@ export default function PalettePreview({ palette = [], exportRef }) {
           <div key={i} className="rounded-lg overflow-visible border border-black/10 dark:border-white/15 flex flex-row group min-h-[80px]">
             <div className="w-24 h-20 flex-shrink-0" style={{ backgroundColor: c.hex }} />
             <div className="p-4 pt-2 pb-0 text-sm flex-1 relative overflow-visible">
-              <button
-                className="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-md border border-black/10 dark:border-white/15 bg-white/80 dark:bg-black/30 backdrop-blur hover:bg-white/95 dark:hover:bg-black/50 transition z-10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpenMenu(openMenu === i ? null : i);
-                }}
-                title="Copy options"
-                aria-haspopup="true"
-                aria-expanded={openMenu === i}
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-
-              {openMenu === i && (
-                <div className="absolute right-0 top-10 z-50 w-56 bg-white/95 dark:bg-black/90 border border-black/10 dark:border-white/10 rounded-md shadow-xl p-2 text-sm backdrop-blur overflow-visible">
-                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(c.hex, `hex-${i}`)}>Copy HEX</button>
-                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(`${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b}`, `rgb-${i}`)}>Copy RGB</button>
-                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(`${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%`, `hsl-${i}`)}>Copy HSL</button>
-                  <button className="w-full text-left px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => copyToClipboard(`${c.hex}\nRGB(${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b})\nHSL(${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%)`, `card-${i}`)}>Copy All</button>
-                </div>
-              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="absolute top-2 right-2 inline-flex items-center justify-center w-7 h-7 rounded-md border border-black/10 dark:border-white/15 bg-card/80 backdrop-blur transition z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenu(openMenu === i ? null : i);
+                    }}
+                    title="Copy options"
+                    aria-haspopup="true"
+                    aria-expanded={openMenu === i}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-card/80 text-card-foreground dark:bg-black/90 border border-black/10 dark:border-white/10 rounded-md shadow-xl p-2 text-sm backdrop-blur overflow-visible">
+                  <DropdownMenuItem onSelect={() => copyToClipboard(c.hex, `hex-${i}`)}>
+                    Copy HEX
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => copyToClipboard(`${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b}`, `rgb-${i}`)}>
+                    Copy RGB
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => copyToClipboard(`${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%`, `hsl-${i}`)}>
+                    Copy HSL
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => copyToClipboard(`${c.hex}\nRGB(${c.rgb.r}, ${c.rgb.g}, ${c.rgb.b})\nHSL(${Math.round(c.hsl.h)}°, ${Math.round(c.hsl.s * 100)}%, ${Math.round(c.hsl.l * 100)}%)`, `card-${i}`)}>
+                    Copy All
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <div className="flex flex-col gap-2 pr-10">
                 <div className="flex items-center gap-3">

@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Save, Trash, Plus, Edit2, X } from "lucide-react";
 import ColorWheel from "@/app/components/ColorWheel";
-import { hsvToHex, hsvToRgb, hsvToHsl, rgbToHsv, hexToHsv } from "@/app/components/PaletteUtils";
+import { hsvToHex, rgbToHsv, hexToHsv } from "@/app/components/PaletteUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export default function EditCollectionPage({ params }) {
   // Unwrap Next.js params (now a promise) at the top-level
@@ -165,25 +166,25 @@ export default function EditCollectionPage({ params }) {
   if (!collection) return <div className="p-6">Collection not found</div>;
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-sm font-normal text-foreground/90">{collection.title}</h1>
+        <h1 className="text-sm font-normal text-card-foreground">{collection.title}</h1>
         <div className="flex gap-2">
           {!isEditingCollection ? (
-            <button onClick={() => setIsEditingCollection(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded">
+            <Button onClick={() => setIsEditingCollection(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded">
               <Save size={16} /> Edit Collection
-            </button>
+            </Button>
           ) : (
             <div className="flex gap-2">
-              <button onClick={saveCollection} className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+              <Button onClick={saveCollection} className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                 <Save size={16} /> Save
-              </button>
-              <button onClick={() => { setIsEditingCollection(false); fetchCollection(); }} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 text-black rounded">
+              </Button>
+              <Button onClick={() => { setIsEditingCollection(false); fetchCollection(); }} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 text-black rounded">
                 Cancel
-              </button>
-              <button onClick={deleteCollection} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+              </Button>
+              <Button onClick={deleteCollection} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                 <Trash size={16} /> Delete
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -191,29 +192,29 @@ export default function EditCollectionPage({ params }) {
 
       <div className="grid gap-6 max-w-6xl">
         {/* Collection Details */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-6 border border-black/5 dark:border-white/10">
-          <h2 className="font-semibold mb-4">Collection Details</h2>
+        <div className="bg-card/80 backdrop-blur rounded-xl p-6 border border-border">
+          <h2 className="font-semibold mb-4 text-card-foreground">Collection Details</h2>
           <div className="grid gap-4">
             {!isEditingCollection ? (
               <div>
-                <p className="text-sm text-foreground/70 mb-1">{form.description || <span className="text-gray-400">No description</span>}</p>
+                <p className="text-sm text-muted-foreground mb-1">{form.description || <span className="text-muted-foreground">No description</span>}</p>
               </div>
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <label className="block text-sm font-medium mb-1 text-muted-foreground">Title</label>
                   <input 
                     value={form.title} 
                     onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))} 
-                    className="w-full border rounded px-3 py-2 bg-white/50 dark:bg-black/20" 
+                    className="w-full border border-border rounded px-3 py-2 bg-card/70 text-card-foreground" 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <label className="block text-sm font-medium mb-1 text-muted-foreground">Description</label>
                   <textarea 
                     value={form.description} 
                     onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))} 
-                    className="w-full border rounded px-3 py-2 bg-white/50 dark:bg-black/20" 
+                    className="w-full border border-border rounded px-3 py-2 bg-card/70 text-card-foreground" 
                     rows={3}
                   />
                 </div>
@@ -223,22 +224,22 @@ export default function EditCollectionPage({ params }) {
         </div>
 
         {/* Colors Grid */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-6 border border-black/5 dark:border-white/10">
+        <div className="bg-card/80 backdrop-blur rounded-xl p-6 border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Colors ({form.colors.length})</h2>
+            <h2 className="text-lg font-semibold text-card-foreground">Colors ({form.colors.length})</h2>
             <div className="flex gap-2">
-              <button 
+              <Button 
                 onClick={addColor} 
-                className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/80"
               >
                 <Plus size={16} /> Add Color
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => setIsBulkAdding(true)} 
                 className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 <Plus size={16} /> Bulk Add
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -247,12 +248,12 @@ export default function EditCollectionPage({ params }) {
             <div className="mb-6 p-4 border-2 border-green-200 dark:border-green-800 rounded-lg bg-green-50 dark:bg-green-950/30">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium">Bulk Add Colors</h3>
-                <button
+                <Button
                   onClick={() => setIsBulkAdding(false)}
                   className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900"
                 >
                   <X size={16} />
-                </button>
+                </Button>
               </div>
               
               <div className="mb-3">
@@ -275,13 +276,13 @@ export default function EditCollectionPage({ params }) {
               </div>
               
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={addBulkColors}
                   className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                 >
                   Add Colors
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setBulkColors(`[
   { "name": "Pure Red", "hex": "#FF0000" },
   { "name": "Crimson", "hex": "#DC143C" },
@@ -297,14 +298,14 @@ export default function EditCollectionPage({ params }) {
                   className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   Load Red Example
-                </button>
+                </Button>
               </div>
             </div>
           )}
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {form.colors.map((c, i) => (
-              <div key={i} className="bg-white/80 dark:bg-black/20 rounded-xl border border-black/10 dark:border-white/10 overflow-hidden relative">
+              <div key={i} className="bg-card/80 rounded-xl border border-border overflow-hidden relative">
                 {/* three-dot menu */}
                 <div className="absolute top-2 right-2">
                   <DropdownMenu>
@@ -407,14 +408,14 @@ export default function EditCollectionPage({ params }) {
                             />
                           </div>
                           <div className="flex justify-end gap-2">
-                            <button onClick={() => { setEditingColorIndex(-1); setEditHsv(null); setEditingColor(null); }} className="px-3 py-2 bg-gray-200 rounded">Cancel</button>
-                            <button onClick={async () => {
+                            <Button onClick={() => { setEditingColorIndex(-1); setEditHsv(null); setEditingColor(null); }} className="px-3 py-2 bg-gray-200 rounded">Cancel</Button>
+                            <Button onClick={async () => {
                               const next = { name: (editingColor?.name || c.name), hex: hsvToHex(editHsv || hexToHsv(c.hex)) };
                               await updateColor(i, next);
                               setEditingColorIndex(-1);
                               setEditHsv(null);
                               setEditingColor(null);
-                            }} className="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
+                            }} className="px-3 py-2 bg-blue-600 text-white rounded">Save</Button>
                           </div>
                         </div>
                       </div>

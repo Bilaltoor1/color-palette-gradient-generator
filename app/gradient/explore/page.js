@@ -149,25 +149,25 @@ export default function ExploreGradientsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Explore Gradients</h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-card-foreground">Explore Gradients</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
           </p>
         </div>
 
-        {/* Controls */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl p-6 border border-gray-200 dark:border-gray-700 space-y-4">
+        {/* Filters and controls */}
+        <div className="bg-card/80 backdrop-blur rounded-xl p-6 border border-border space-y-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium xs:block hidden">Sort</span>
+              <span className="text-sm font-medium hidden md:block">Sort</span>
               <Select value={sort} onValueChange={v => setSort(v)}>
                 <SelectTrigger className="w-36">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800">
+                <SelectContent className="bg-card border border-border">
                   <SelectItem value="newest">Newest</SelectItem>
                   <SelectItem value="oldest">Oldest</SelectItem>
                 </SelectContent>
@@ -175,12 +175,12 @@ export default function ExploreGradientsPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium xs:block hidden">Type</span>
+              <span className="text-sm font-medium hidden md:block">Type</span>
               <Select value={type} onValueChange={v => setType(v)}>
                 <SelectTrigger className="w-36">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800">
+                <SelectContent className="bg-card border border-border">
                   <SelectItem value="linear">Linear</SelectItem>
                   <SelectItem value="conic">Angular</SelectItem>
                   <SelectItem value="radial">Radial</SelectItem>
@@ -188,56 +188,113 @@ export default function ExploreGradientsPage() {
               </Select>
             </div>
 
-            {/* Toggle Button for Filters */}
-            <button
-              className="p-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            {/* RGB Shuffle - Desktop */}
+            <div className="items-center gap-2 hidden md:flex">
+              <span className="text-sm font-medium">RGB Shuffle</span>
+              <Select value={rgbShuffle} onValueChange={v => setRgbShuffle(v)}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border border-border">
+                  <SelectItem value="rgb">RGB</SelectItem>
+                  <SelectItem value="rbg">RBG</SelectItem>
+                  <SelectItem value="grb">GRB</SelectItem>
+                  <SelectItem value="gbr">GBR</SelectItem>
+                  <SelectItem value="brg">BRG</SelectItem>
+                  <SelectItem value="bgr">BGR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Angle - Desktop */}
+            <div className="items-center gap-2 hidden md:flex">
+              <span className="text-sm font-medium w-12">Angle</span>
+              <Slider
+                min={0}
+                max={360}
+                step={1}
+                value={[angle]}
+                onValueChange={v => setAngle(v[0])}
+                className="w-32 bg-muted rounded-full"
+              />
+              <span className="text-sm w-12">{angle}°</span>
+            </div>
+
+            {/* Toggle Button for Mobile Filters */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden p-2 rounded-md bg-muted hover:bg-accent hover:text-accent-foreground"
               onClick={() => setShowFilters(!showFilters)}
             >
               {showFilters ? <IoClose size={20} /> : <IoMenu size={20} />}
-            </button>
+            </Button>
           </div>
 
+          {/* Mobile Filters */}
           {showFilters && (
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="md:hidden space-y-4">
+              {/* RGB Shuffle - Mobile */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium w-8">R</span>
-                <Slider
-                  min={-64}
-                  max={64}
-                  step={1}
-                  value={[offset.r]}
-                  onValueChange={v => setOffset(o => ({ ...o, r: v[0] }))}
-                  className="w-20 bg-gray-300 dark:bg-gray-700 rounded-full"
-                />
-                <span className="text-xs w-8">{offset.r}</span>
+                <span className="text-sm font-medium">RGB Shuffle</span>
+                <Select value={rgbShuffle} onValueChange={v => setRgbShuffle(v)}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border border-border">
+                    <SelectItem value="rgb">RGB</SelectItem>
+                    <SelectItem value="rbg">RBG</SelectItem>
+                    <SelectItem value="grb">GRB</SelectItem>
+                    <SelectItem value="gbr">GBR</SelectItem>
+                    <SelectItem value="brg">BRG</SelectItem>
+                    <SelectItem value="bgr">BGR</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium w-8">G</span>
-                <Slider
-                  min={-64}
-                  max={64}
-                  step={1}
-                  value={[offset.g]}
-                  onValueChange={v => setOffset(o => ({ ...o, g: v[0] }))}
-                  className="w-20 bg-gray-300 dark:bg-gray-700 rounded-full"
-                />
-                <span className="text-xs w-8">{offset.g}</span>
+              {/* RGB Offset Controls */}
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium w-8">R</span>
+                  <Slider
+                    min={-64}
+                    max={64}
+                    step={1}
+                    value={[offset.r]}
+                    onValueChange={v => setOffset(o => ({ ...o, r: v[0] }))}
+                    className="w-20 bg-muted rounded-full"
+                  />
+                  <span className="text-xs w-8">{offset.r}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium w-8">G</span>
+                  <Slider
+                    min={-64}
+                    max={64}
+                    step={1}
+                    value={[offset.g]}
+                    onValueChange={v => setOffset(o => ({ ...o, g: v[0] }))}
+                    className="w-20 bg-muted rounded-full"
+                  />
+                  <span className="text-xs w-8">{offset.g}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium w-8">B</span>
+                  <Slider
+                    min={-64}
+                    max={64}
+                    step={1}
+                    value={[offset.b]}
+                    onValueChange={v => setOffset(o => ({ ...o, b: v[0] }))}
+                    className="w-20 bg-muted rounded-full"
+                  />
+                  <span className="text-xs w-8">{offset.b}</span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium w-8">B</span>
-                <Slider
-                  min={-64}
-                  max={64}
-                  step={1}
-                  value={[offset.b]}
-                  onValueChange={v => setOffset(o => ({ ...o, b: v[0] }))}
-                  className="w-20 bg-gray-300 dark:bg-gray-700 rounded-full"
-                />
-                <span className="text-xs w-8">{offset.b}</span>
-              </div>
-
+              {/* Angle - Mobile */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium w-12">Angle</span>
                 <Slider
@@ -246,7 +303,7 @@ export default function ExploreGradientsPage() {
                   step={1}
                   value={[angle]}
                   onValueChange={v => setAngle(v[0])}
-                  className="w-32 bg-gray-300 dark:bg-gray-700 rounded-full"
+                  className="w-32 bg-muted rounded-full"
                 />
                 <span className="text-sm w-12">{angle}°</span>
               </div>
@@ -261,14 +318,14 @@ export default function ExploreGradientsPage() {
             const css = buildGradientCss(a);
             const id = `grad-card-${g._id}`;
             return (
-              <div key={g._id} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-300">
+              <div key={g._id} className="group bg-card/80 backdrop-blur rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all duration-300">
                 <div id={id} className="h-48 w-full" style={{ background: css }} />
                 <div className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
                       {g.title}
                     </h3>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       {timeAgo(g.createdAt)}
                     </p>
                   </div>
@@ -278,7 +335,7 @@ export default function ExploreGradientsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => copyCss(a)}
-                      className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 border-blue-200 dark:border-blue-800"
+                      className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 border-blue-200"
                     >
                       <RiCss3Fill className="w-4 h-4 mr-1" />
                       CSS
@@ -287,7 +344,7 @@ export default function ExploreGradientsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => copyTailwind(a)}
-                      className="cursor-pointer hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:text-cyan-600 dark:hover:text-cyan-400 border-cyan-200 dark:border-cyan-800"
+                      className="cursor-pointer hover:bg-cyan-50 hover:text-cyan-600 border-cyan-200"
                     >
                       <RiTailwindCssFill className="w-4 h-4 mr-1" />
                       Tailwind
@@ -298,7 +355,7 @@ export default function ExploreGradientsPage() {
                   {g.tags && g.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {g.tags.map(t => (
-                        <span key={t} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full">
+                        <span key={t} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
                           #{t}
                         </span>
                       ))}
@@ -310,16 +367,17 @@ export default function ExploreGradientsPage() {
           })}
         </div>
 
+        {/* Show More button */}
         {hasMore && (
           <div className="flex justify-center">
             <Button
               onClick={() => load(page + 1)}
               disabled={loading}
-              className="cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-8 py-2"
+              className="cursor-pointer bg-primary text-primary-foreground border-0 px-8 py-2 rounded hover:bg-primary/80"
             >
               {loading ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent mr-2"></div>
                   Loading...
                 </>
               ) : (

@@ -33,40 +33,40 @@ export default async function ShadesIndexPage() {
 
   if (!items || items.length === 0) {
     return (
-      <>
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
         {hero}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-          <h2 className="text-2xl sm:text-3xl font-semibold mb-6">Color Shade Collections</h2>
-          <div className="p-6 rounded border bg-white/60 dark:bg-white/5">No collections found yet. Create one in the admin dashboard.</div>
+          <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-foreground">Color Shade Collections</h2>
+          <div className="p-6 rounded border bg-card/80 backdrop-blur border-border text-card-foreground">No collections found yet. Create one in the admin dashboard.</div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {hero}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-6">Color Shade Collections</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-foreground">Color Shade Collections</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {items.map((collection) => (
             <Link key={collection._id} href={`/shades/${collection.slug}`}
-              className="group rounded-md border border-neutral-200 dark:border-white/10 overflow-hidden hover:shadow-md transition bg-white dark:bg-gray-900">
+              className="group rounded-md border border-border overflow-hidden hover:shadow-md transition bg-card/80 backdrop-blur">
               <div className="flex flex-col">
                 {(collection.colors || []).slice(0, 7).map((color, i) => (
                   <div key={i} className="w-full h-10" style={{ backgroundColor: color.hex }} title={`${color.name}: ${color.hex}`} />
                 ))}
                 {Array.from({ length: Math.max(0, 7 - (collection.colors?.length || 0)) }).map((_, i) => (
-                  <div key={`empty-${i}`} className="w-full h-10 bg-gray-100 dark:bg-gray-800" />
+                  <div key={`empty-${i}`} className="w-full h-10 bg-muted" />
                 ))}
               </div>
               <div className="p-4">
-                <h3 className="text-base font-black leading-none">{collection.title}</h3>
+                <h3 className="text-base font-black leading-none text-card-foreground">{collection.title}</h3>
               </div>
             </Link>
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }

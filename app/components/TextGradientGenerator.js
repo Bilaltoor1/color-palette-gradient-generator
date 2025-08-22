@@ -19,7 +19,7 @@ const GRADIENT_PRESETS = [
   },
   {
     id: "top-bottom",
-    name: "Top to Bottom", 
+    name: "Top to Bottom",
     type: "linear",
     angle: 180,
     stops: [
@@ -30,7 +30,7 @@ const GRADIENT_PRESETS = [
   {
     id: "diagonal",
     name: "Diagonal",
-    type: "linear", 
+    type: "linear",
     angle: 45,
     stops: [
       { id: "1", color: "#f093fb", position: 0, opacity: 1 },
@@ -124,7 +124,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
     }
 
     // Linear: map angle to direction token r, l, t, b, tr, br, tl, bl
-    const dirs = ["t","tr","r","br","b","bl","l","tl"]; // nearest 45° sectors
+    const dirs = ["t", "tr", "r", "br", "b", "bl", "l", "tl"]; // nearest 45° sectors
     const idx = Math.round((angle % 360) / 45) % 8;
     const dirToken = dirs[idx];
 
@@ -153,7 +153,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
       return `bg-radial from-${fmtWithOpacity(sorted[0].color, sorted[0].opacity)} via-${fmtWithOpacity(sorted[1].color, sorted[1].opacity)} to-${fmtWithOpacity(sorted[2].color, sorted[2].opacity)}`;
     }
 
-    const dirs = ["t","tr","r","br","b","bl","l","tl"];
+    const dirs = ["t", "tr", "r", "br", "b", "bl", "l", "tl"];
     const idx = Math.round((angle % 360) / 45) % 8;
     const dirToken = dirs[idx];
     const s = [...stops].sort((a, b) => a.position - b.position);
@@ -226,7 +226,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
   };
 
   const updateStop = (stopId, updates) => {
-    setStops(stops.map(s => 
+    setStops(stops.map(s =>
       s.id === stopId ? { ...s, ...updates } : s
     ));
   };
@@ -247,8 +247,8 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
 
   return (
     <div className="space-y-6">
-          {/* Text Preview with editable text */}
-      <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10 space-y-4">
+      {/* Text Preview with editable text */}
+      <div className="bg-card/80 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10 space-y-4">
         <h3 className="text-lg font-semibold">Live Preview</h3>
         <div className="text-center">
           <h1
@@ -270,20 +270,20 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="w-full px-3 py-2 rounded border border-black/10 dark:border-white/15 bg-transparent"
+            className="w-full px-3 py-2 rounded border border-black/60 bg-transparent"
             placeholder="Enter your text here..."
           />
         </div>
       </div>
       {/* Presets */}
-      <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
+      <div className="bg-card/80 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
         <h3 className="text-lg font-semibold mb-4">Presets</h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
           {GRADIENT_PRESETS.map((preset) => {
             const presetCSS = preset.type === "radial"
               ? `radial-gradient(circle, ${preset.stops.map(s => `${s.color} ${s.position}%`).join(", ")})`
               : `linear-gradient(${preset.angle}deg, ${preset.stops.map(s => `${s.color} ${s.position}%`).join(", ")})`;
-            
+
             return (
               <button
                 key={preset.id}
@@ -303,29 +303,27 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gradient Settings */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10 space-y-4">
+        <div className="bg-card/80 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10 space-y-4">
           <h3 className="text-lg font-semibold">Text Gradient Settings</h3>
-          
+
           {/* Type Selection */}
           <div>
             <label className="text-sm font-medium mb-2 block">Type</label>
             <div className="flex gap-2">
               <button
-                className={`px-3 py-1.5 rounded-md border text-sm transition-colors ${
-                  gradientType === "linear"
+                className={`px-3 py-1.5 rounded-md border text-sm transition-colors ${gradientType === "linear"
                     ? "bg-foreground text-background border-transparent"
                     : "border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10"
-                }`}
+                  }`}
                 onClick={() => setGradientType("linear")}
               >
                 Linear
               </button>
               <button
-                className={`px-3 py-1.5 rounded-md border text-sm transition-colors ${
-                  gradientType === "radial"
+                className={`px-3 py-1.5 rounded-md border text-sm transition-colors ${gradientType === "radial"
                     ? "bg-foreground text-background border-transparent"
                     : "border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10"
-                }`}
+                  }`}
                 onClick={() => setGradientType("radial")}
               >
                 Radial
@@ -362,16 +360,15 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
                 </button>
               )}
             </div>
-            
+
             <div className="space-y-2">
               {stops.map((stop) => (
                 <div
                   key={stop.id}
-                  className={`flex items-center gap-2 p-2 rounded border ${
-                    activeStopId === stop.id
+                  className={`flex items-center gap-2 p-2 rounded border ${activeStopId === stop.id
                       ? "border-blue-300 bg-blue-50/50 dark:bg-blue-900/20"
                       : "border-black/10 dark:border-white/15"
-                  }`}
+                    }`}
                   onClick={() => setActiveStopId(stop.id)}
                 >
                   <div
@@ -405,7 +402,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
           {activeStop && (
             <div className="space-y-3 p-3 bg-black/5 dark:bg-white/5 rounded">
               <h4 className="text-sm font-medium">Edit Selected Stop</h4>
-              
+
               <div>
                 <label className="text-xs text-foreground/70 mb-1 block">Position: {activeStop.position}%</label>
                 <input
@@ -417,7 +414,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
                   className="w-full"
                 />
               </div>
-              
+
               <div>
                 <label className="text-xs text-foreground/70 mb-1 block">Opacity: {Math.round(activeStop.opacity * 100)}%</label>
                 <input
@@ -433,7 +430,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
 
               <button
                 onClick={() => setShowColorPicker(!showColorPicker)}
-                className="px-3 py-1.5 text-xs rounded border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10"
+                className="px-3 py-1.5 text-xs rounded border bg-card/80 backdrop-blur"
               >
                 {showColorPicker ? "Hide" : "Show"} Color Picker
               </button>
@@ -442,7 +439,7 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
         </div>
 
         {/* Color Picker */}
-        <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
+        <div className="bg-card/80 backdrop-blur rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
           <h3 className="text-lg font-semibold mb-4">Color Picker</h3>
           {showColorPicker && (
             <div className="flex justify-center">
@@ -455,20 +452,17 @@ export default function TextGradientGenerator({ onGradientChange, onCssChange, o
           )}
         </div>
       </div>
-
-    
-      </div>
-
+    </div>
   );
 }
 
 function hexToRgba(hex, alpha) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return `rgba(0, 0, 0, ${alpha})`;
-  
+
   const r = parseInt(result[1], 16);
   const g = parseInt(result[2], 16);
   const b = parseInt(result[3], 16);
-  
+
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
