@@ -18,6 +18,7 @@ export default function Header() {
   const navLinks = [
     { href: "/palette", label: "Palette" },
     { href: "/gradient", label: "Gradient" },
+    { href: "/gradient/explore", label: "Explore Gradients" },
     { href: "/text-gradient", label: "Text Gradient" },
     { href: "/shades", label: "Shades" },
     { href: "/admin", label: "Admin" },
