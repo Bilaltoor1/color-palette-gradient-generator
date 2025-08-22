@@ -1,8 +1,5 @@
 "use client";
-
 import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import GradientGenerator from "../components/GradientGenerator";
 import { Code } from "lucide-react";
 

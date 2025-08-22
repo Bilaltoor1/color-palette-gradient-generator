@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { buildGradientCss } from "@/lib/gradients";
+import { toast } from "react-hot-toast";
 
 // If you have shadcn/ui, these imports work; otherwise replace with plain elements
 import { Button } from "@/components/ui/button";
@@ -106,8 +107,10 @@ export default function EditGradientPage() {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error || "save_failed");
       }
+      toast.success("Gradient saved successfully!");
     } catch (e) {
       setError(e?.message || "save_failed");
+      toast.error(`Failed to save: ${e?.message || "save_failed"}`);
     } finally {
       setSaving(false);
     }
@@ -120,9 +123,11 @@ export default function EditGradientPage() {
     try {
       const res = await fetch(`/api/gradients/${form._id || id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("delete_failed");
+      toast.success("Gradient deleted successfully!");
       router.push("/admin/gradients");
     } catch (e) {
       setError(e?.message || "delete_failed");
+      toast.error(`Failed to delete: ${e?.message || "delete_failed"}`);
     } finally {
       setSaving(false);
     }
@@ -144,8 +149,21 @@ export default function EditGradientPage() {
           <div className="text-xs text-muted-foreground">/{form.slug}</div>
         </div>
         <div className="flex gap-2">
-          <Button variant="destructive" onClick={del} disabled={saving}>Delete</Button>
-          <Button onClick={save} disabled={saving}>Save</Button>
+          <Button 
+            variant="destructive" 
+            onClick={del} 
+            disabled={saving}
+            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white"
+          >
+            Delete
+          </Button>
+          <Button 
+            onClick={save} 
+            disabled={saving}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+          >
+            Save
+          </Button>
         </div>
       </div>
 
@@ -160,8 +178,8 @@ export default function EditGradientPage() {
             <div className="flex items-center gap-2">
               <span className="text-sm">Type</span>
               <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v }))}>
-                <SelectTrigger className="w-40"><SelectValue placeholder="Type" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="w-40 bg-white dark:bg-gray-800"><SelectValue placeholder="Type" /></SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800">
                   <SelectItem value="linear">Linear</SelectItem>
                   <SelectItem value="conic">Conic</SelectItem>
                   <SelectItem value="radial">Radial</SelectItem>
@@ -170,7 +188,14 @@ export default function EditGradientPage() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm w-12">Angle</span>
-              <Slider min={0} max={360} step={1} value={[form.angle]} onValueChange={v => setForm(f => ({ ...f, angle: v[0] }))} className="w-56" />
+              <Slider 
+                min={0} 
+                max={360} 
+                step={1} 
+                value={[form.angle]} 
+                onValueChange={v => setForm(f => ({ ...f, angle: v[0] }))} 
+                className="w-56 bg-gray-300 dark:bg-gray-700 rounded-full" 
+              />
               <span className="text-sm">{form.angle}°</span>
             </div>
           </div>
@@ -179,8 +204,22 @@ export default function EditGradientPage() {
             <div className="flex items-center justify-between">
               <div className="font-medium">Stops</div>
               <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={addStop}>Add Stop</Button>
-                <Button size="sm" variant="outline" onClick={sortByPosition}>Sort by position</Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={addStop}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  Add Stop
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={sortByPosition}
+                  className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                  Sort by position
+                </Button>
               </div>
             </div>
             <div className="space-y-2">

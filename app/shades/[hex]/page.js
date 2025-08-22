@@ -1,5 +1,4 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
 import ColorCard from '../../components/ColorCard';
 
 async function fetchShade(slug) {
