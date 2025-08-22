@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { Save, Trash, Plus, Edit2 } from "lucide-react";
+import { Save, Trash, Plus, Edit2, X } from "lucide-react";
 import ColorWheel from "@/app/components/ColorWheel";
 import { hsvToHex, hsvToRgb, hsvToHsl, rgbToHsv, hexToHsv } from "@/app/components/PaletteUtils";
 import {
@@ -24,6 +24,8 @@ export default function EditCollectionPage({ params }) {
   const [editingColorIndex, setEditingColorIndex] = useState(-1);
   const [editingColor, setEditingColor] = useState(null);
   const [editHsv, setEditHsv] = useState(null);
+  const [isBulkAdding, setIsBulkAdding] = useState(false);
+  const [bulkColors, setBulkColors] = useState('');
 
   useEffect(() => {
     if (slug) {
@@ -86,6 +88,40 @@ export default function EditCollectionPage({ params }) {
 
   async function addColor() {
     router.push(`/admin/shades/${slug}/add-color`);
+  }
+
+  async function addBulkColors() {
+    try {
+      const parsedColors = JSON.parse(bulkColors);
+      
+      if (!Array.isArray(parsedColors)) {
+        toast.error("Colors must be an array");
+        return;
+      }
+
+      const res = await fetch(`/api/shades/bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, colors: parsedColors }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Bulk add failed");
+      }
+
+      const result = await res.json();
+      toast.success(result.message);
+      setBulkColors('');
+      setIsBulkAdding(false);
+      fetchCollection(); // Refresh the collection data
+    } catch (error) {
+      if (error.message.includes("JSON")) {
+        toast.error("Invalid JSON format. Please check your input.");
+      } else {
+        toast.error(error.message || "Bulk add failed");
+      }
+    }
   }
 
   async function updateColor(index, patch) {
@@ -190,13 +226,81 @@ export default function EditCollectionPage({ params }) {
         <div className="bg-white/60 dark:bg-white/5 backdrop-blur rounded-xl p-6 border border-black/5 dark:border-white/10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Colors ({form.colors.length})</h2>
-            <button 
-              onClick={addColor} 
-              className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              <Plus size={16} /> Add Color
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={addColor} 
+                className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                <Plus size={16} /> Add Color
+              </button>
+              <button 
+                onClick={() => setIsBulkAdding(true)} 
+                className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                <Plus size={16} /> Bulk Add
+              </button>
+            </div>
           </div>
+
+          {/* Bulk Add Modal */}
+          {isBulkAdding && (
+            <div className="mb-6 p-4 border-2 border-green-200 dark:border-green-800 rounded-lg bg-green-50 dark:bg-green-950/30">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium">Bulk Add Colors</h3>
+                <button
+                  onClick={() => setIsBulkAdding(false)}
+                  className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              
+              <div className="mb-3">
+                <label className="block text-sm font-medium mb-2">Paste JSON Array of Colors</label>
+                <textarea
+                  value={bulkColors}
+                  onChange={(e) => setBulkColors(e.target.value)}
+                  className="w-full h-32 border rounded px-3 py-2 bg-white dark:bg-gray-800 font-mono text-sm"
+                  placeholder='[
+  { "name": "Pure Red", "hex": "#FF0000" },
+  { "name": "Crimson", "hex": "#DC143C" },
+  { "name": "Cherry Red", "hex": "#DE3163" }
+]'
+                />
+              </div>
+              
+              <div className="mb-3 text-xs text-gray-600 dark:text-gray-400">
+                <p>Format: Array of objects with "name" and "hex" properties.</p>
+                <p>Example: <code>{'[{"name": "Red", "hex": "#FF0000"}]'}</code></p>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={addBulkColors}
+                  className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Add Colors
+                </button>
+                <button
+                  onClick={() => setBulkColors(`[
+  { "name": "Pure Red", "hex": "#FF0000" },
+  { "name": "Crimson", "hex": "#DC143C" },
+  { "name": "Cherry Red", "hex": "#DE3163" },
+  { "name": "Fire Engine Red", "hex": "#CE2029" },
+  { "name": "Cardinal Red", "hex": "#C41E3A" },
+  { "name": "Scarlet", "hex": "#FF2400" },
+  { "name": "Ruby Red", "hex": "#E0115F" },
+  { "name": "Blood Red", "hex": "#8B0000" },
+  { "name": "Burgundy", "hex": "#800020" },
+  { "name": "Maroon", "hex": "#800000" }
+]`)}
+                  className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Load Red Example
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {form.colors.map((c, i) => (

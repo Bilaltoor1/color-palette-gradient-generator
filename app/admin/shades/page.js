@@ -8,6 +8,8 @@ export default function AdminShadesPage() {
   const [collections, setCollections] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
+  const [isBulkAdding, setIsBulkAdding] = useState(false);
+  const [bulkColors, setBulkColors] = useState('');
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -42,6 +44,49 @@ export default function AdminShadesPage() {
       ...prev,
       colors: [...prev.colors, { name: "", hex: "#FF0000" }]
     }));
+  }
+
+  function addBulkColors() {
+    try {
+      const parsedColors = JSON.parse(bulkColors);
+      
+      if (!Array.isArray(parsedColors)) {
+        toast.error("Colors must be an array");
+        return;
+      }
+
+      // Validate each color object
+      const validColors = [];
+      for (const color of parsedColors) {
+        if (typeof color !== 'object' || !color.name || !color.hex) {
+          toast.error("Each color must have 'name' and 'hex' properties");
+          return;
+        }
+        
+        // Validate hex format
+        const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+        if (!hexRegex.test(color.hex)) {
+          toast.error(`Invalid hex color: ${color.hex}. Must be in format #RRGGBB`);
+          return;
+        }
+        
+        validColors.push({
+          name: color.name.trim(),
+          hex: color.hex.toUpperCase()
+        });
+      }
+
+      setForm(prev => ({
+        ...prev,
+        colors: [...prev.colors, ...validColors]
+      }));
+
+      toast.success(`Added ${validColors.length} colors successfully`);
+      setBulkColors('');
+      setIsBulkAdding(false);
+    } catch (error) {
+      toast.error("Invalid JSON format. Please check your input.");
+    }
   }
 
   function removeColor(index) {
@@ -229,14 +274,83 @@ export default function AdminShadesPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium">Colors *</label>
-                <button
-                  onClick={addColor}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10"
-                >
-                  <Plus size={14} />
-                  Add Color
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={addColor}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/10"
+                  >
+                    <Plus size={14} />
+                    Add Color
+                  </button>
+                  <button
+                    onClick={() => setIsBulkAdding(true)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    <Plus size={14} />
+                    Bulk Add
+                  </button>
+                </div>
               </div>
+
+              {/* Bulk Add Modal */}
+              {isBulkAdding && (
+                <div className="mb-4 p-4 border-2 border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium">Bulk Add Colors</h3>
+                    <button
+                      onClick={() => setIsBulkAdding(false)}
+                      className="p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium mb-2">Paste JSON Array of Colors</label>
+                    <textarea
+                      value={bulkColors}
+                      onChange={(e) => setBulkColors(e.target.value)}
+                      className="w-full h-32 border rounded px-3 py-2 bg-white dark:bg-gray-800 font-mono text-sm"
+                      placeholder='[
+  { "name": "Pure Red", "hex": "#FF0000" },
+  { "name": "Crimson", "hex": "#DC143C" },
+  { "name": "Cherry Red", "hex": "#DE3163" }
+]'
+                    />
+                  </div>
+                  
+                  <div className="mb-3 text-xs text-gray-600 dark:text-gray-400">
+                    <p>Format: Array of objects with "name" and "hex" properties.</p>
+                    <p>Example: <code>{'[{"name": "Red", "hex": "#FF0000"}]'}</code></p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={addBulkColors}
+                      className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      Add Colors
+                    </button>
+                    <button
+                      onClick={() => setBulkColors(`[
+  { "name": "Pure Red", "hex": "#FF0000" },
+  { "name": "Crimson", "hex": "#DC143C" },
+  { "name": "Cherry Red", "hex": "#DE3163" },
+  { "name": "Fire Engine Red", "hex": "#CE2029" },
+  { "name": "Cardinal Red", "hex": "#C41E3A" },
+  { "name": "Scarlet", "hex": "#FF2400" },
+  { "name": "Ruby Red", "hex": "#E0115F" },
+  { "name": "Blood Red", "hex": "#8B0000" },
+  { "name": "Burgundy", "hex": "#800020" },
+  { "name": "Maroon", "hex": "#800000" }
+]`)}
+                      className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      Load Red Example
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 {form.colors.map((color, index) => (

@@ -37,7 +37,10 @@ export async function POST(req) {
       doc.thumbIndex = thumbIndex;
       await doc.save();
     } else {
-      doc = await Shade.create({ title, description, slug, colors, thumbIndex });
+      // Only pass schema-defined fields to avoid inserting unexpected fields
+      // that might have unique indexes (like baseHex) in the database
+      const docData = { title, description, slug, colors, thumbIndex };
+      doc = await Shade.create(docData);
     }
     return new Response(JSON.stringify(doc), { status: 200 });
   } catch (error) {
