@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
 import { useTheme } from "./ThemeProvider";
+import { useAuth } from "../auth/AuthContext";
 import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { admin, logout } = useAuth();
 
   const linkClass = (path) =>
     `px-3 py-1 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors ${pathname === path ? 'bg-accent text-accent-foreground' : ''}`;
@@ -25,8 +27,13 @@ export default function Header() {
     { href: "/gradient/explore", label: "Explore Gradients" },
     { href: "/text-gradient", label: "Text Gradient" },
     { href: "/shades", label: "Shades" },
-    { href: "/admin", label: "Admin" },
+    ...(admin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -64,6 +71,19 @@ export default function Header() {
                   <MdDarkMode className="h-5 w-5 text-muted-foreground" />
                 )}
               </Button>
+
+              {/* Logout Button for Admin */}
+              {admin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="ml-2 p-2 hover:bg-red-50 hover:text-red-600"
+                  aria-label="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              )}
             </nav>
 
             {/* Mobile Menu Button and Theme Toggle */}
@@ -81,6 +101,19 @@ export default function Header() {
                   <MdDarkMode className="h-5 w-5 text-muted-foreground" />
                 )}
               </Button>
+
+              {/* Mobile Logout Button */}
+              {admin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="p-2 hover:bg-red-50 hover:text-red-600"
+                  aria-label="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              )}
               
               <Button
                 variant="ghost"

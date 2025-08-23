@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { AuthProvider } from "./auth/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,18 +61,20 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
         <ThemeProvider>
-          <Header />
-          {children}
-          <Toaster 
-            position="bottom-right" 
-            toastOptions={{
-              className: '',
-              style: {
-                background: 'var(--toast-bg)',
-                color: 'var(--toast-color)',
-              },
-            }}
-          />
+          <AuthProvider>
+            <Header />
+            {children}
+            <Toaster 
+              position="bottom-right" 
+              toastOptions={{
+                className: '',
+                style: {
+                  background: 'var(--toast-bg)',
+                  color: 'var(--toast-color)',
+                },
+              }}
+            />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

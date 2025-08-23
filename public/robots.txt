@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/admin/
+Disallow: /api/auth/
+
+# Allow public API endpoints for gradients and shades (GET only)
+Allow: /api/gradients$
+Allow: /api/shades$
+
+Sitemap: https://yourdomain.com/sitemap.xml

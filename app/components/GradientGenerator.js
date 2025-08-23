@@ -143,7 +143,15 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
     const toastId = toast.loading('Preparing download...');
     try {
       const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(el, { width: w, height: h, pixelRatio: 2 });
+      const dataUrl = await toPng(el, {
+        width: w,
+        height: h,
+        pixelRatio: 2,
+        filter: (node) => {
+          // Only include the gradient container, exclude other elements
+          return node === el || el.contains(node);
+        },
+      });
       const a = document.createElement('a');
       a.href = dataUrl;
       a.download = `${name}-gradient-${w}x${h}.png`;
@@ -163,7 +171,15 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
     const toastId = toast.loading('Preparing PDF...');
     try {
       const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(el, { width: w, height: h, pixelRatio: 2 });
+      const dataUrl = await toPng(el, {
+        width: w,
+        height: h,
+        pixelRatio: 2,
+        filter: (node) => {
+          // Only include the gradient container, exclude other elements
+          return node === el || el.contains(node);
+        },
+      });
       const { jsPDF } = await import('jspdf');
       const orientation = w >= h ? 'landscape' : 'portrait';
       const pdf = new jsPDF({ orientation, unit: 'px', format: [w, h] });
