@@ -113,7 +113,7 @@ export default function PalettePreview({ palette = [], exportRef }) {
                     <Copy className="w-4 h-4" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-card/80 text-card-foreground dark:bg-black/90 border border-black/10 dark:border-white/10 rounded-md shadow-xl p-2 text-sm backdrop-blur overflow-visible">
+                <DropdownMenuContent align="end" className="w-56 bg-card text-card-foreground border border-border rounded-md shadow-md p-2 text-sm backdrop-blur overflow-visible">
                   <DropdownMenuItem onSelect={() => copyToClipboard(c.hex, `hex-${i}`)}>
                     Copy HEX
                   </DropdownMenuItem>

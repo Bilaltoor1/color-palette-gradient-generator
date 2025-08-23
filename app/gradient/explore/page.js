@@ -6,6 +6,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Slider } from "@/components/ui/slider";
 import { buildGradientCss, applyRgbOffset, buildTailwindClass } from "@/lib/gradients";
 import { Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { RiCss3Fill, RiTailwindCssFill } from "react-icons/ri";
 import { toast } from "react-hot-toast";
 import { IoMenu } from "react-icons/io5";
@@ -116,21 +117,23 @@ export default function ExploreGradientsPage() {
     toast.success("Tailwind class copied to clipboard!");
   };
 
-  async function exportImage(id, w, h) {
+  async function exportImage(id, w, h, gradientName) {
     const el = document.getElementById(id);
     if (!el) return;
 
-    toast.loading("Preparing download...");
+    const toastId = toast.loading("Preparing download...");
 
     try {
       const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(el, { width: w, height: h, pixelRatio: 2 });
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = `gradient-${w}x${h}.png`;
+      a.download = `${gradientName}-gradient-${w}x${h}.png`;
       a.click();
+      toast.dismiss(toastId);
       toast.success("Image downloaded successfully!");
     } catch (error) {
+      toast.dismiss(toastId);
       toast.error("Failed to download image");
     }
   }
@@ -349,7 +352,7 @@ export default function ExploreGradientsPage() {
                       <RiTailwindCssFill className="w-4 h-4 mr-1" />
                       Tailwind
                     </Button>
-                    <ExportMenu onPick={(w, h) => exportImage(id, w, h)} />
+                    <ExportMenu onPick={(w, h) => exportImage(id, w, h, g.title)} />
                   </div>
 
                   {g.tags && g.tags.length > 0 && (
@@ -392,7 +395,6 @@ export default function ExploreGradientsPage() {
 }
 
 function ExportMenu({ onPick }) {
-  const [open, setOpen] = useState(false);
   const [orientation, setOrientation] = useState("landscape");
   const options = [
     { label: "HD (1280x720)", w: 1280, h: 720 },
@@ -406,58 +408,42 @@ function ExportMenu({ onPick }) {
   const pick = async (o) => {
     const dims = orientation === "portrait" ? { w: o.h, h: o.w } : { w: o.w, h: o.h };
     await onPick(dims.w, dims.h);
-    setOpen(false);
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (open && !event.target.closest('.export-menu-container')) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [open]);
-
   return (
-    <div className="relative export-menu-container">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => setOpen(v => !v)}
-        className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 border-green-200 dark:border-green-800"
-      >
-        <Download className="w-4 h-4 mr-1" />
-        Export
-      </Button>
-      {open && (
-        <div className="absolute right-0 bottom-full mb-2 w-56 rounded-lg border bg-white dark:bg-gray-800 shadow-xl p-3 z-50">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium">Orientation</span>
-            <select
-              className="text-sm border rounded px-2 py-1 bg-white dark:bg-gray-700 cursor-pointer"
-              value={orientation}
-              onChange={e => setOrientation(e.target.value)}
-            >
-              <option value="landscape">Landscape</option>
-              <option value="portrait">Portrait</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            {options.map(o => (
-              <button
-                key={o.label}
-                className="w-full text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded cursor-pointer transition-colors"
-                onClick={() => pick(o)}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size="sm"
+          variant="outline"
+          className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 border-green-200 dark:border-green-800"
+        >
+          <Download className="w-4 h-4 mr-1" />
+          Export
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent side="top" align="end" sideOffset={8} className="w-56 bg-card text-card-foreground border border-border rounded-lg shadow-xl p-3">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium">Orientation</span>
+          <select
+            className="text-sm border rounded px-2 py-1 cursor-pointer bg-card text-card-foreground border-border"
+            value={orientation}
+            onChange={e => setOrientation(e.target.value)}
+          >
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+          </select>
         </div>
-      )}
-    </div>
+
+        <div className="space-y-1">
+          {options.map(o => (
+            <DropdownMenuItem key={o.label} onSelect={() => pick(o)} className="text-sm px-3 py-2 rounded">
+              {o.label}
+            </DropdownMenuItem>
+          ))}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
