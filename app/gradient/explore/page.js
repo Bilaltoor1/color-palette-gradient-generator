@@ -12,6 +12,8 @@ import { toast } from "react-hot-toast";
 import { IoMenu } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 import EmptyState from '@/components/EmptyState';
+import { Badge } from "@/components/ui/badge";
+import { GRADIENT_CATEGORIES } from '@/data/categories';
 
 // Time ago formatter
 function timeAgo(date) {
@@ -58,15 +60,23 @@ export default function ExploreGradientsPage() {
   const [angle, setAngle] = useState(90);
   const [type, setType] = useState("linear");
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     setLoading(true);
     load(1, true);
-  }, [sort]);
+  }, [sort, selectedCategory]);
 
   async function load(nextPage = 1, replace = false) {
     try {
-      const res = await fetch(`/api/gradients?page=${nextPage}&limit=20&sort=${sort}`);
+      const params = new URLSearchParams({
+        page: nextPage.toString(),
+        limit: "20",
+        sort,
+        category: selectedCategory === "all" ? "" : selectedCategory
+      });
+      
+      const res = await fetch(`/api/gradients?${params}`);
       const { items: list, hasMore: more } = await res.json();
       setItems(prev => replace ? list : [...prev, ...list]);
       setHasMore(more);
@@ -152,25 +162,9 @@ export default function ExploreGradientsPage() {
     return <LoadingSpinner />;
   }
 
-  if (!items || items.length === 0) {
-    return (
-      <EmptyState
-        hero={
-           <section className="bg-linear-to-b from-[#6BD4EA]/100 to-[#0B71A2]/100 backdrop-blur border-b border-border">
-           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 r">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white/90 drop-shadow">Explore Gradients</h1>
-            <p className="mt-3 text-white/80 max-w-2xl">
-              Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
-            </p>
-           </div>
-        </section>
-        }
-        entity="Gradients"
-        title="No gradients yet"
-        description="No gradients were found. Create or add some gradients to get started."
-      />
-    );
-  }
+
+  const hasAnyGradients = Array.isArray(items) && items.length > 0;
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -181,6 +175,40 @@ export default function ExploreGradientsPage() {
             <p className="mt-3 text-white/80 max-w-2xl mx-auto">
               Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
             </p>
+          </div>
+        </section>
+
+        {/* Category Filter Section */}
+        <section className="bg-muted/50 border border-border rounded-xl">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setSelectedCategory("all")}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  selectedCategory === "all"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-accent text-foreground"
+                }`}
+              >
+                All
+              </button>
+              {GRADIENT_CATEGORIES.slice(0, 7).map(category => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedCategory === category.id
+                      ? "text-white"
+                      : "bg-background hover:bg-accent text-foreground"
+                  }`}
+                  style={{
+                    backgroundColor: selectedCategory === category.id ? category.color : undefined
+                  }}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -338,7 +366,13 @@ export default function ExploreGradientsPage() {
         </div>
 
         {/* Gradient Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {items.length === 0 ? (
+          <div className="py-12 text-center">
+            <h3 className="text-lg font-semibold text-foreground">No gradients found for this category</h3>
+            <p className="text-sm text-muted-foreground mt-2">Try selecting a different category or clear the filter.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map(g => {
             const a = adjusted({ ...g, angle, type });
             const css = buildGradientCss(a);
@@ -378,22 +412,26 @@ export default function ExploreGradientsPage() {
                     <ExportMenu onPick={(w, h) => exportImage(id, w, h, g.title)} />
                   </div>
 
-                  {g.tags && g.tags.length > 0 && (
+                  {g.categories && g.categories.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {g.tags.map(t => (
-                        <span key={t} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                          #{t}
-                        </span>
-                      ))}
+                      {g.categories.map(categoryId => {
+                        const category = GRADIENT_CATEGORIES.find(c => c.id === categoryId);
+                        return (
+                          <Badge key={categoryId} variant="secondary" className="text-xs" style={{ backgroundColor: category?.color + '20', color: category?.color }}>
+                            {category?.name || categoryId}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
               </div>
             );
           })}
-        </div>
+  </div>
+  )}
 
-        {/* Show More button */}
+  {/* Show More button */}
         {hasMore && (
           <div className="flex justify-center">
             <Button

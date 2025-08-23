@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { GRADIENT_CATEGORIES } from '@/data/categories';
 
 export default function EditGradientPage() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function EditGradientPage() {
       { color: "#FF0000", position: 0 },
       { color: "#0000FF", position: 100 }
     ],
-    tags: [],
+    categories: [],
     createdAt: null,
     updatedAt: null,
     _id: null,
@@ -44,7 +45,7 @@ export default function EditGradientPage() {
         const res = await fetch(`/api/gradients/${id}`);
         if (!res.ok) throw new Error("Failed to load");
         const data = await res.json();
-        if (!ignore) setForm({ ...data, tags: data.tags || [] });
+        if (!ignore) setForm({ ...data, categories: data.categories || [] });
       } catch (e) {
         if (!ignore) setError(e?.message || "load_failed");
       } finally {
@@ -96,7 +97,7 @@ export default function EditGradientPage() {
         type: form.type,
         angle: form.angle,
         stops: form.stops,
-        tags: form.tags,
+        categories: form.categories,
       };
       const res = await fetch(`/api/gradients/${form._id || id}`, {
         method: "PATCH",
@@ -242,11 +243,29 @@ export default function EditGradientPage() {
             </div>
           </div>
 
-          <Input
-            placeholder="Tags (comma separated)"
-            value={(form.tags || []).join(", ")}
-            onChange={e => setForm(f => ({ ...f, tags: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }))}
-          />
+          {/* Categories Selection */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Categories</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {GRADIENT_CATEGORIES.map(category => (
+                <label key={category.id} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.categories.includes(category.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setForm(f => ({ ...f, categories: [...f.categories, category.id] }));
+                      } else {
+                        setForm(f => ({ ...f, categories: f.categories.filter(c => c !== category.id) }));
+                      }
+                    }}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm" style={{ color: category.color }}>{category.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Right: Live preview */}

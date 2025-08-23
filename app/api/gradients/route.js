@@ -9,10 +9,10 @@ export async function GET(req) {
     const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
     const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "20", 10), 1), 50);
     const sort = (searchParams.get("sort") || "newest") === "oldest" ? 1 : -1;
-    const tags = (searchParams.get("tags") || "").split(",").map(t => t.trim()).filter(Boolean);
+    const category = searchParams.get("category") || "";
 
     const query = {};
-    if (tags.length) query.tags = { $all: tags };
+    if (category && category !== "all") query.categories = category;
 
     const total = await Gradient.countDocuments(query);
     const items = await Gradient.find(query)

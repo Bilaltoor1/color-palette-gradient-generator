@@ -22,7 +22,7 @@ const GradientSchema = new Schema(
         message: "At least two stops are required",
       },
     },
-    tags: { type: [String], default: [] },
+    categories: { type: [String], default: [] },
   },
   { timestamps: true }
 );
