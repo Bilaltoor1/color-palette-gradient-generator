@@ -12,7 +12,7 @@ export async function GET(req) {
     const category = searchParams.get("category") || "";
 
     const query = {};
-    if (category && category !== "all") query.categories = category;
+    if (category && category !== "all") query.categories = { $in: [category] };
 
     const total = await Gradient.countDocuments(query);
     const items = await Gradient.find(query)

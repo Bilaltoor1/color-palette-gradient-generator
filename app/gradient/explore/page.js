@@ -1,510 +1,108 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { buildGradientCss, applyRgbOffset, buildTailwindClass } from "@/lib/gradients";
-import { Download } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { RiCss3Fill, RiTailwindCssFill } from "react-icons/ri";
-import { toast } from "react-hot-toast";
-import { IoMenu } from "react-icons/io5";
-import { IoClose } from "react-icons/io5";
-import EmptyState from '@/components/EmptyState';
-import { Badge } from "@/components/ui/badge";
+import { Suspense } from "react";
 import { GRADIENT_CATEGORIES } from '@/data/categories';
+import {dbConnect} from '@/lib/mongoose';
+import Gradient from '@/models/Gradient';
+import HeroSection from './components/HeroSection';
+import CategoryFilter from './components/CategoryFilter';
+import GradientControls from './components/GradientControls';
+import GradientGrid from './components/GradientGrid';
+import { GradientControlsProvider } from './components/GradientControlsContext';
 
-// Time ago formatter
-function timeAgo(date) {
-  const now = new Date();
-  const past = new Date(date);
-  const diffMs = now - past;
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
-  const diffYears = Math.floor(diffDays / 365);
-
-  if (diffSecs < 60) return "Just now";
-  if (diffMins < 60) return `${diffMins}min ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffWeeks < 4) return `${diffWeeks}w ago`;
-  if (diffMonths < 12) return `${diffMonths}mo ago`;
-  return `${diffYears}y ago`;
+// Server-side data fetching
+async function getGradients(searchParams) {
+  await dbConnect();
+  
+  const params = await searchParams;
+  const page = parseInt(params.page || '1');
+  const limit = parseInt(params.limit || '20');
+  const sort = params.sort || 'newest';
+  const category = params.category || 'all';
+  
+  const skip = (page - 1) * limit;
+  
+  let query = {};
+  if (category && category !== 'all') {
+    query.categories = { $in: [category] };
+  }
+  
+  const sortOrder = sort === 'newest' ? { createdAt: -1 } : { createdAt: 1 };
+  
+  try {
+    const [items, total] = await Promise.all([
+      Gradient.find(query)
+        .sort(sortOrder)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Gradient.countDocuments(query)
+    ]);
+    
+    const hasMore = skip + items.length < total;
+    
+    return {
+      items: JSON.parse(JSON.stringify(items)),
+      hasMore,
+      total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit)
+    };
+  } catch (error) {
+    console.error('Error fetching gradients:', error);
+    return {
+      items: [],
+      hasMore: false,
+      total: 0,
+      currentPage: 1,
+      totalPages: 0
+    };
+  }
 }
 
-// Loading component
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center p-8">
-      <div className="relative">
-        <div className="w-12 h-12 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
-        <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
-      </div>
-    </div>
-  );
-}
-
-export default function ExploreGradientsPage() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [sort, setSort] = useState("newest");
-  const [rgbShuffle, setRgbShuffle] = useState("rgb"); // rgb, rbg, grb, gbr, brg, bgr
-  const [offset, setOffset] = useState({ r: 0, g: 0, b: 0 });
-  const [angle, setAngle] = useState(90);
-  const [type, setType] = useState("linear");
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-
-  useEffect(() => {
-    setLoading(true);
-    load(1, true);
-  }, [sort, selectedCategory]);
-
-  async function load(nextPage = 1, replace = false) {
-    try {
-      const params = new URLSearchParams({
-        page: nextPage.toString(),
-        limit: "20",
-        sort,
-        category: selectedCategory === "all" ? "" : selectedCategory
-      });
-      
-      const res = await fetch(`/api/gradients?${params}`);
-      const { items: list, hasMore: more } = await res.json();
-      setItems(prev => replace ? list : [...prev, ...list]);
-      setHasMore(more);
-      setPage(nextPage);
-    } catch (error) {
-      console.error("Failed to load gradients:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Apply RGB shuffle to a hex color
-  const shuffleRgb = (hex, shuffle) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-
-    let newR, newG, newB;
-    switch (shuffle) {
-      case "rbg": [newR, newG, newB] = [r, b, g]; break;
-      case "grb": [newR, newG, newB] = [g, r, b]; break;
-      case "gbr": [newR, newG, newB] = [g, b, r]; break;
-      case "brg": [newR, newG, newB] = [b, r, g]; break;
-      case "bgr": [newR, newG, newB] = [b, g, r]; break;
-      default: [newR, newG, newB] = [r, g, b]; break;
-    }
-
-    return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-  };
-
-  const adjusted = (g) => {
-    const stops = (g.stops || []).map(s => ({
-      ...s,
-      color: applyRgbOffset(shuffleRgb(s.color, rgbShuffle), offset)
-    }));
-    return { ...g, type, angle, stops };
-  };
-
-  const copyCss = async (g) => {
-    const css = buildGradientCss(adjusted(g));
-    await navigator.clipboard.writeText(`background: ${css};`);
-    toast.success("CSS copied to clipboard!");
-  };
-
-  const copyTailwind = async (g) => {
-    const css = buildGradientCss(adjusted(g));
-    const tw = buildTailwindClass(css);
-    await navigator.clipboard.writeText(tw);
-    toast.success("Tailwind class copied to clipboard!");
-  };
-
-  async function exportImage(id, w, h, gradientName) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    const toastId = toast.loading("Preparing download...");
-
-    try {
-      const { toPng } = await import("html-to-image");
-      const dataUrl = await toPng(el, { width: w, height: h, pixelRatio: 2 });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `${gradientName}-gradient-${w}x${h}.png`;
-      a.click();
-      toast.dismiss(toastId);
-      toast.success("Image downloaded successfully!");
-    } catch (error) {
-      toast.dismiss(toastId);
-      toast.error("Failed to download image");
-    }
-  }
-
-  const resolutions = [
-    { label: "HD (1280x720)", w: 1280, h: 720 },
-    { label: "FHD (1920x1080)", w: 1920, h: 1080 },
-    { label: "2K (2560x1440)", w: 2560, h: 1440 },
-    { label: "4K (3840x2160)", w: 3840, h: 2160 },
-    { label: "Square (1080x1080)", w: 1080, h: 1080 },
-    { label: "Mobile (1080x1920)", w: 1080, h: 1920 }
-  ];
-
-  if (loading && items.length === 0) {
-    return <LoadingSpinner />;
-  }
-
-
-  const hasAnyGradients = Array.isArray(items) && items.length > 0;
-
+export default async function ExploreGradientsPage({ searchParams }) {
+  const { items, hasMore, total, currentPage, totalPages } = await getGradients(searchParams);
+  const params = await searchParams;
+  const selectedCategory = params.category || 'all';
+  const currentSort = params.sort || 'newest';
 
   return (
     <div className="min-h-screen bg-background">
+      <HeroSection />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <section className="w-full bg-linear-to-b from-[#6BD4EA]/100 to-[#0B71A2]/100 backdrop-blur border-b border-border">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white/90 drop-shadow">Explore Gradients</h1>
-            <p className="mt-3 text-white/80 max-w-2xl mx-auto">
-              Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
-            </p>
-          </div>
-        </section>
+        <CategoryFilter 
+          selectedCategory={selectedCategory}
+          categories={GRADIENT_CATEGORIES}
+          currentSort={currentSort}
+        />
 
-        {/* Category Filter Section */}
-        <section className="bg-muted/50 border border-border rounded-xl">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setSelectedCategory("all")}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === "all"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background hover:bg-accent text-foreground"
-                }`}
-              >
-                All
-              </button>
-              {GRADIENT_CATEGORIES.slice(0, 7).map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category.id
-                      ? "text-white"
-                      : "bg-background hover:bg-accent text-foreground"
-                  }`}
-                  style={{
-                    backgroundColor: selectedCategory === category.id ? category.color : undefined
-                  }}
-                >
-                  {category.name}
-                </button>
-              ))}
+        <GradientControlsProvider>
+          <Suspense fallback={<div>Loading controls...</div>}>
+            <GradientControls />
+          </Suspense>
+
+          {items.length === 0 ? (
+            <div className="py-12 text-center">
+              <h3 className="text-lg font-semibold text-foreground">No gradients found for this category</h3>
+              <p className="text-sm text-muted-foreground mt-2">Try selecting a different category or clear the filter.</p>
             </div>
-          </div>
-        </section>
-
-        {/* Filters and controls */}
-        <div className="bg-card/80 backdrop-blur rounded-xl p-6 border border-border space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium hidden md:block">Sort</span>
-              <Select value={sort} onValueChange={v => setSort(v)}>
-                <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border border-border">
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium hidden md:block">Type</span>
-              <Select value={type} onValueChange={v => setType(v)}>
-                <SelectTrigger className="w-36">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border border-border">
-                  <SelectItem value="linear">Linear</SelectItem>
-                  <SelectItem value="conic">Angular</SelectItem>
-                  <SelectItem value="radial">Radial</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* RGB Shuffle - Desktop */}
-            <div className="items-center gap-2 hidden md:flex">
-              <span className="text-sm font-medium">RGB Shuffle</span>
-              <Select value={rgbShuffle} onValueChange={v => setRgbShuffle(v)}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-card border border-border">
-                  <SelectItem value="rgb">RGB</SelectItem>
-                  <SelectItem value="rbg">RBG</SelectItem>
-                  <SelectItem value="grb">GRB</SelectItem>
-                  <SelectItem value="gbr">GBR</SelectItem>
-                  <SelectItem value="brg">BRG</SelectItem>
-                  <SelectItem value="bgr">BGR</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Angle - Desktop */}
-            <div className="items-center gap-2 hidden md:flex">
-              <span className="text-sm font-medium w-12">Angle</span>
-              <Slider
-                min={0}
-                max={360}
-                step={1}
-                value={[angle]}
-                onValueChange={v => setAngle(v[0])}
-                className="w-32 bg-muted rounded-full"
+          ) : (
+            <Suspense fallback={<div>Loading gradients...</div>}>
+              <GradientGrid 
+                initialItems={items}
+                hasMore={hasMore}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                total={total}
+                categories={GRADIENT_CATEGORIES}
+                selectedCategory={selectedCategory}
+                currentSort={currentSort}
               />
-              <span className="text-sm w-12">{angle}°</span>
-            </div>
-
-            {/* Toggle Button for Mobile Filters */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="md:hidden p-2 rounded-md bg-muted hover:bg-accent hover:text-accent-foreground"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              {showFilters ? <IoClose size={20} /> : <IoMenu size={20} />}
-            </Button>
-          </div>
-
-          {/* Mobile Filters */}
-          {showFilters && (
-            <div className="md:hidden space-y-4">
-              {/* RGB Shuffle - Mobile */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">RGB Shuffle</span>
-                <Select value={rgbShuffle} onValueChange={v => setRgbShuffle(v)}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border border-border">
-                    <SelectItem value="rgb">RGB</SelectItem>
-                    <SelectItem value="rbg">RBG</SelectItem>
-                    <SelectItem value="grb">GRB</SelectItem>
-                    <SelectItem value="gbr">GBR</SelectItem>
-                    <SelectItem value="brg">BRG</SelectItem>
-                    <SelectItem value="bgr">BGR</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* RGB Offset Controls */}
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium w-8">R</span>
-                  <Slider
-                    min={-64}
-                    max={64}
-                    step={1}
-                    value={[offset.r]}
-                    onValueChange={v => setOffset(o => ({ ...o, r: v[0] }))}
-                    className="w-20 bg-muted rounded-full"
-                  />
-                  <span className="text-xs w-8">{offset.r}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium w-8">G</span>
-                  <Slider
-                    min={-64}
-                    max={64}
-                    step={1}
-                    value={[offset.g]}
-                    onValueChange={v => setOffset(o => ({ ...o, g: v[0] }))}
-                    className="w-20 bg-muted rounded-full"
-                  />
-                  <span className="text-xs w-8">{offset.g}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium w-8">B</span>
-                  <Slider
-                    min={-64}
-                    max={64}
-                    step={1}
-                    value={[offset.b]}
-                    onValueChange={v => setOffset(o => ({ ...o, b: v[0] }))}
-                    className="w-20 bg-muted rounded-full"
-                  />
-                  <span className="text-xs w-8">{offset.b}</span>
-                </div>
-              </div>
-
-              {/* Angle - Mobile */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium w-12">Angle</span>
-                <Slider
-                  min={0}
-                  max={360}
-                  step={1}
-                  value={[angle]}
-                  onValueChange={v => setAngle(v[0])}
-                  className="w-32 bg-muted rounded-full"
-                />
-                <span className="text-sm w-12">{angle}°</span>
-              </div>
-            </div>
+            </Suspense>
           )}
-        </div>
-
-        {/* Gradient Grid */}
-        {items.length === 0 ? (
-          <div className="py-12 text-center">
-            <h3 className="text-lg font-semibold text-foreground">No gradients found for this category</h3>
-            <p className="text-sm text-muted-foreground mt-2">Try selecting a different category or clear the filter.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {items.map(g => {
-            const a = adjusted({ ...g, angle, type });
-            const css = buildGradientCss(a);
-            const id = `grad-card-${g._id}`;
-            return (
-              <div key={g._id} className="group bg-card/80 backdrop-blur rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div id={id} className="h-48 w-full" style={{ background: css }} />
-                <div className="p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
-                      {g.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {timeAgo(g.createdAt)}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyCss(a)}
-                      className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 border-blue-200"
-                    >
-                      <RiCss3Fill className="w-4 h-4 mr-1" />
-                      CSS
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyTailwind(a)}
-                      className="cursor-pointer hover:bg-cyan-50 hover:text-cyan-600 border-cyan-200"
-                    >
-                      <RiTailwindCssFill className="w-4 h-4 mr-1" />
-                      Tailwind
-                    </Button>
-                    <ExportMenu onPick={(w, h) => exportImage(id, w, h, g.title)} />
-                  </div>
-
-                  {g.categories && g.categories.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {g.categories.map(categoryId => {
-                        const category = GRADIENT_CATEGORIES.find(c => c.id === categoryId);
-                        return (
-                          <Badge key={categoryId} variant="secondary" className="text-xs" style={{ backgroundColor: category?.color + '20', color: category?.color }}>
-                            {category?.name || categoryId}
-                          </Badge>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-  </div>
-  )}
-
-  {/* Show More button */}
-        {hasMore && (
-          <div className="flex justify-center">
-            <Button
-              onClick={() => load(page + 1)}
-              disabled={loading}
-              className="cursor-pointer bg-primary text-primary-foreground border-0 px-8 py-2 rounded hover:bg-primary/80"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent mr-2"></div>
-                  Loading...
-                </>
-              ) : (
-                'Show More'
-              )}
-            </Button>
-          </div>
-        )}
+        </GradientControlsProvider>
       </div>
     </div>
   );
 }
 
-function ExportMenu({ onPick }) {
-  const [orientation, setOrientation] = useState("landscape");
-  const options = [
-    { label: "HD (1280x720)", w: 1280, h: 720 },
-    { label: "FHD (1920x1080)", w: 1920, h: 1080 },
-    { label: "2K (2560x1440)", w: 2560, h: 1440 },
-    { label: "4K (3840x2160)", w: 3840, h: 2160 },
-    { label: "Square (1080x1080)", w: 1080, h: 1080 },
-    { label: "Mobile (1080x1920)", w: 1080, h: 1920 }
-  ];
-
-  const pick = async (o) => {
-    const dims = orientation === "portrait" ? { w: o.h, h: o.w } : { w: o.w, h: o.h };
-    await onPick(dims.w, dims.h);
-  };
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 dark:hover:text-green-400 border-green-200 dark:border-green-800"
-        >
-          <Download className="w-4 h-4 mr-1" />
-          Export
-        </Button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent side="top" align="end" sideOffset={8} className="w-56 bg-card text-card-foreground border border-border rounded-lg shadow-xl p-3">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium">Orientation</span>
-          <select
-            className="text-sm border rounded px-2 py-1 cursor-pointer bg-card text-card-foreground border-border"
-            value={orientation}
-            onChange={e => setOrientation(e.target.value)}
-          >
-            <option value="landscape">Landscape</option>
-            <option value="portrait">Portrait</option>
-          </select>
-        </div>
-
-        <div className="space-y-1">
-          {options.map(o => (
-            <DropdownMenuItem key={o.label} onSelect={() => pick(o)} className="text-sm px-3 py-2 rounded">
-              {o.label}
-            </DropdownMenuItem>
-          ))}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
+// Enable ISR with 60 second revalidation
+export const revalidate = 60;
