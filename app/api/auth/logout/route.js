@@ -11,12 +11,10 @@ export async function POST(request) {
       );
     }
 
-    const response = NextResponse.json({ message: 'Logged out successfully' });
+    // Clear auth cookie and invalidate session
+    await clearAuthCookie();
     
-    // Clear auth cookie
-    clearAuthCookie(response);
-    
-    return response;
+    return NextResponse.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json(

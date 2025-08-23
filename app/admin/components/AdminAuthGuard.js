@@ -3,9 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../auth/AuthContext';
+import PhoneVerification from '../../components/PhoneVerification';
 
 export default function AdminAuthGuard({ children }) {
-  const { admin, loading } = useAuth();
+  const { admin, loading, requiresPhoneVerification, completePhoneVerification } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +27,16 @@ export default function AdminAuthGuard({ children }) {
   // Don't render children if not authenticated
   if (!admin) {
     return null;
+  }
+
+  // Show phone verification if required
+  if (requiresPhoneVerification) {
+    return (
+      <PhoneVerification 
+        admin={admin} 
+        onVerificationComplete={completePhoneVerification}
+      />
+    );
   }
 
   return <>{children}</>;

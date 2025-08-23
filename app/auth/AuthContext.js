@@ -8,6 +8,7 @@ const AuthContext = createContext({});
 export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [requiresPhoneVerification, setRequiresPhoneVerification] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -22,11 +23,20 @@ export function AuthProvider({ children }) {
       if (response.ok) {
         const adminData = await response.json();
         setAdmin(adminData);
+        
+        // Check if phone verification is required
+        if (adminData.requiresPhoneVerification && !adminData.isPhoneVerified) {
+          setRequiresPhoneVerification(true);
+        } else {
+          setRequiresPhoneVerification(false);
+        }
       } else {
         setAdmin(null);
+        setRequiresPhoneVerification(false);
       }
     } catch (error) {
       setAdmin(null);
+      setRequiresPhoneVerification(false);
     } finally {
       setLoading(false);
     }
@@ -46,10 +56,18 @@ export function AuthProvider({ children }) {
       if (response.ok) {
         const adminData = await response.json();
         setAdmin(adminData);
+        
+        // Check if phone verification is required
+        if (adminData.requiresPhoneVerification && !adminData.isPhoneVerified) {
+          setRequiresPhoneVerification(true);
+        } else {
+          setRequiresPhoneVerification(false);
+        }
+        
         return { success: true };
       } else {
         const error = await response.json();
-        return { success: false, error: error.message || 'Login failed' };
+        return { success: false, error: error.error || 'Login failed' };
       }
     } catch (error) {
       return { success: false, error: 'Network error occurred' };
@@ -68,6 +86,7 @@ export function AuthProvider({ children }) {
       toast.success('Logged out successfully');
     } finally {
       setAdmin(null);
+      setRequiresPhoneVerification(false);
       // Check if user is on admin page and redirect accordingly
       const isOnAdminPage = window.location.pathname.startsWith('/admin');
       if (isOnAdminPage) {
@@ -76,8 +95,27 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const completePhoneVerification = (phoneNumber) => {
+    // Update admin state to reflect phone verification
+    setAdmin(prev => ({
+      ...prev,
+      isPhoneVerified: true,
+      phoneNumber: phoneNumber
+    }));
+    setRequiresPhoneVerification(false);
+    toast.success('Phone verification completed!');
+  };
+
   return (
-    <AuthContext.Provider value={{ admin, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ 
+      admin, 
+      loading, 
+      login, 
+      logout, 
+      checkAuth, 
+      requiresPhoneVerification,
+      completePhoneVerification
+    }}>
       {children}
     </AuthContext.Provider>
   );
