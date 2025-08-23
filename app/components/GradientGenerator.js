@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import ColorWheel from "./ColorWheel";
 import { hsvToHex, hsvToRgb, hexToHsv } from "./PaletteUtils";
 import { Button } from "@/components/ui/button";
@@ -15,8 +16,8 @@ const GRADIENT_PRESETS = [
     type: "linear",
     angle: 90,
     stops: [
-      { id: "1", color: "#FF6B6B", position: 0, opacity: 1 },
-      { id: "2", color: "#4ECDC4", position: 100, opacity: 1 }
+  { id: "1", color: "#8253FF", position: 0, opacity: 1 },
+  { id: "2", color: "#4ECDC4", position: 100, opacity: 1 }
     ]
   },
   {
@@ -71,6 +72,9 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
   const [showColorPicker, setShowColorPicker] = useState(true); // Auto-show by default
   // local toast removed; using react-hot-toast
   const gradientRef = useRef(null);
+  // Export states for image/pdf
+  const [exportOrientation, setExportOrientation] = useState('landscape');
+  const [exportOption, setExportOption] = useState({ label: 'FHD (1920x1080)', w: 1920, h: 1080 });
 
   const activeStop = stops.find(s => s.id === activeStopId);
   const activeHsv = useMemo(() => {
@@ -123,6 +127,56 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
     if (s.length === 2) return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} to-${fmtWithOpacity(s[1].color, s[1].opacity)}`;
     return `bg-linear-to-${dirToken} from-${fmtWithOpacity(s[0].color, s[0].opacity)} via-${fmtWithOpacity(s[1].color, s[1].opacity)} to-${fmtWithOpacity(s[2].color, s[2].opacity)}`;
   }, [stops, gradientType, angle]);
+
+  const exportOptions = [
+    { label: 'HD (1280x720)', w: 1280, h: 720 },
+    { label: 'FHD (1920x1080)', w: 1920, h: 1080 },
+    { label: '2K (2560x1440)', w: 2560, h: 1440 },
+    { label: '4K (3840x2160)', w: 3840, h: 2160 },
+    { label: 'Square (1080x1080)', w: 1080, h: 1080 },
+    { label: 'Mobile (1080x1920)', w: 1080, h: 1920 }
+  ];
+
+  async function exportImage(elem, w, h, name = 'gradient') {
+    const el = elem || gradientRef.current;
+    if (!el) return;
+    const toastId = toast.loading('Preparing download...');
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(el, { width: w, height: h, pixelRatio: 2 });
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `${name}-gradient-${w}x${h}.png`;
+      a.click();
+      toast.dismiss(toastId);
+      toast.success('Image downloaded successfully!');
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error('Failed to download image');
+      console.error(error);
+    }
+  }
+
+  async function exportPdf(elem, w, h, name = 'gradient') {
+    const el = elem || gradientRef.current;
+    if (!el) return;
+    const toastId = toast.loading('Preparing PDF...');
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(el, { width: w, height: h, pixelRatio: 2 });
+      const { jsPDF } = await import('jspdf');
+      const orientation = w >= h ? 'landscape' : 'portrait';
+      const pdf = new jsPDF({ orientation, unit: 'px', format: [w, h] });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, w, h);
+      pdf.save(`${name}-gradient-${w}x${h}.pdf`);
+      toast.dismiss(toastId);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error('Failed to generate PDF');
+      console.error(error);
+    }
+  }
 
   useEffect(() => {
     if (onTailwindBgChange) onTailwindBgChange(bgTailwindClasses);
@@ -199,9 +253,61 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
   return (
     <div className="space-y-6">
       {/* Controls */}
+       <div className="flex justify-end">
+        <div className="flex items-center gap-2">
+            {/* PDF export button (single click uses selected option/orientation) */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => exportPdf(null, exportOrientation === 'portrait' ? exportOption.h : exportOption.w, exportOrientation === 'portrait' ? exportOption.w : exportOption.h, 'preset-gradient')}
+              className="inline-flex items-center gap-2 cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              PDF
+            </Button>
+
+            {/* Image export with dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="inline-flex items-center gap-2 cursor-pointer">
+                  <Download className="w-4 h-4" />
+                  Image
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent side="top" align="end" sideOffset={8} className="w-56 bg-card text-card-foreground border border-border rounded-lg shadow-xl p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium">Orientation</span>
+                  <select
+                    className="text-sm border rounded px-2 py-1 cursor-pointer bg-card text-card-foreground border-border"
+                    value={exportOrientation}
+                    onChange={e => setExportOrientation(e.target.value)}
+                  >
+                    <option value="landscape">Landscape</option>
+                    <option value="portrait">Portrait</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  {exportOptions.map(o => (
+                    <DropdownMenuItem key={o.label} onSelect={async () => {
+                      setExportOption(o);
+                      const dims = exportOrientation === 'portrait' ? { w: o.h, h: o.w } : { w: o.w, h: o.h };
+                      await exportImage(null, dims.w, dims.h, 'preset-gradient');
+                    }} className="text-sm px-3 py-2 rounded">
+                      {o.label}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+       </div>
          {/* Presets */}
       <div className="bg-card/80 backdrop-blur  rounded-xl p-4 sm:p-6 border border-black/5 dark:border-white/10">
-        <h3 className="text-lg font-semibold mb-4">Presets</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Presets</h3>
+        </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3">
           {GRADIENT_PRESETS.map((preset) => {
             const presetCSS = preset.type === "radial"
@@ -381,6 +487,7 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
 
       {/* Gradient Display with CSS */}
       <div 
+        ref={gradientRef}
         className="w-full min-h-32 rounded-xl border border-black/10 dark:border-white/15 p-4 flex flex-col justify-end"
         style={{ background: gradientCSS }}
       >
@@ -390,7 +497,7 @@ export default function GradientGenerator({ onGradientChange, onTailwindBgChange
           </pre>
           <Button
             onClick={copyCSS}
-            className="px-3 py-1.5 text-xs rounded bg-card/80 backdrop-blur text-card-foreground transition"
+            className="px-3 py-1.5 cursor-pointer text-xs rounded bg-card/80 backdrop-blur text-card-foreground transition"
           >
             <RiCss3Fill className="w-3 h-3" aria-hidden />
             Copy CSS

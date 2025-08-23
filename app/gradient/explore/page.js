@@ -11,6 +11,7 @@ import { RiCss3Fill, RiTailwindCssFill } from "react-icons/ri";
 import { toast } from "react-hot-toast";
 import { IoMenu } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
+import EmptyState from '@/components/EmptyState';
 
 // Time ago formatter
 function timeAgo(date) {
@@ -151,15 +152,37 @@ export default function ExploreGradientsPage() {
     return <LoadingSpinner />;
   }
 
+  if (!items || items.length === 0) {
+    return (
+      <EmptyState
+        hero={
+           <section className="bg-linear-to-b from-[#6BD4EA]/100 to-[#0B71A2]/100 backdrop-blur border-b border-border">
+           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 r">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white/90 drop-shadow">Explore Gradients</h1>
+            <p className="mt-3 text-white/80 max-w-2xl">
+              Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
+            </p>
+           </div>
+        </section>
+        }
+        entity="Gradients"
+        title="No gradients yet"
+        description="No gradients were found. Create or add some gradients to get started."
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-card-foreground">Explore Gradients</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
-          </p>
-        </div>
+        <section className="w-full bg-linear-to-b from-[#6BD4EA]/100 to-[#0B71A2]/100 backdrop-blur border-b border-border">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 text-center">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white/90 drop-shadow">Explore Gradients</h1>
+            <p className="mt-3 text-white/80 max-w-2xl mx-auto">
+              Discover beautiful gradients, customize them with RGB shuffle and controls, then copy CSS or export as images.
+            </p>
+          </div>
+        </section>
 
         {/* Filters and controls */}
         <div className="bg-card/80 backdrop-blur rounded-xl p-6 border border-border space-y-4">

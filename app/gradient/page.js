@@ -4,15 +4,24 @@ import GradientGenerator from "../components/GradientGenerator";
 import { Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RiTailwindCssFill } from "react-icons/ri";
+import toast from "react-hot-toast";
 
 export default function GradientPage() {
-  const [currentGradient, setCurrentGradient] = useState("linear-gradient(90deg, #FF6B6B 0%, #4ECDC4 100%)");
+  const [currentGradient, setCurrentGradient] = useState("linear-gradient(90deg, rgba(130, 83, 255, 1) 0%, rgba(78, 205, 196, 1) 100%)");
   const [tailwindBgClasses, setTailwindBgClasses] = useState("");
 
   const handleGradientChange = useCallback((gradient) => {
     setCurrentGradient(gradient);
   }, []);
-
+ const copyTailwind = async () => {
+    try {
+      await navigator.clipboard.writeText(tailwindBgClasses);
+      toast.success("Tailwind copied successfully");
+    } catch (e) {
+      console.error("Copy failed", e);
+      toast.error("Copy failed");
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Hero area */}
@@ -36,8 +45,8 @@ export default function GradientPage() {
               {tailwindBgClasses}
             </pre>
             <Button
-              onClick={async () => { await navigator.clipboard.writeText(tailwindBgClasses); }}
-              className="inline-flex bg-card/80 backdrop-blur text-card-foreground items-center gap-2 px-3 py-1.5 text-xs rounded border border-border transition "
+              onClick={()=>copyTailwind()}
+              className="inline-flex bg-card/80 backdrop-blur cursor-pointer text-card-foreground items-center gap-2 px-3 py-1.5 text-xs rounded border border-border transition "
             >
               <RiTailwindCssFill className="w-3 h-3" aria-hidden />
               <span>Copy Tailwind</span>
